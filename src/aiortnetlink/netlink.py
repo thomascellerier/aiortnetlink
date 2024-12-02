@@ -27,6 +27,8 @@ NLMSG_DONE: Final = 0x3
 NLMSG_OVERRUN: Final = 0x4
 NLMSG_MIN_TYPE: Final = 0x10
 
+NETLINK_GET_STRICT_CHK: Final = 12
+
 # Flags values
 NLM_F_REQUEST: Final = 0x01  # It is request message.
 NLM_F_MULTI: Final = 0x02  # Multipart message, terminated by NLMSG_DONE
@@ -79,6 +81,13 @@ NETLINK_EXT_ACK: Final = 11
 # See <linux/if_arp.h>
 ARPHRD_LOOPBACK: Final = 772
 ARPHRD_ETHER: Final = 1
+
+# See <linux/if_link.h>
+IFLA_UNSPEC: Final = 0
+IFLA_ADDRESS: Final = 1
+IFLA_BROADCAST: Final = 2
+IFLA_IFNAME: Final = 3
+# TODO: The rest of the values
 
 
 def _nlmsghdr(
@@ -133,7 +142,7 @@ _IFINFOMSG_SIZE: Final = struct.calcsize(_IFINFOMSG_FMT)
 
 
 def _ifinfomsg(
-    family: int = socket.AF_NETLINK,
+    family: int = 0,
     ifi_type: int = 0,
     index: int = 0,
     flags: int = 0,
@@ -346,13 +355,20 @@ class NetlinkClient:
         self._transport: asyncio.DatagramTransport | None = None
         self._protocol: NetlinkProtocol | None = None
         self._seqno = 0
+        self._recvbuf_actual_size: int | None = None
 
     async def __aenter__(self) -> Self:
         loop = asyncio.get_running_loop()
         sock = socket.socket(
             type=socket.SOCK_DGRAM, family=socket.AF_NETLINK, proto=NETLINK_ROUTE
         )
+        self._rcvbuf_actual_size = sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
+
         sock.setsockopt(SOL_NETLINK, NETLINK_EXT_ACK, 1)
+
+        # See https://docs.kernel.org/userspace-api/netlink/intro.html#strict-checking
+        sock.setsockopt(SOL_NETLINK, NETLINK_GET_STRICT_CHK, 1)
+
         transport, protocol = await loop.create_datagram_endpoint(
             lambda: NetlinkProtocol(), sock=sock
         )
@@ -439,9 +455,16 @@ class NetlinkClient:
             # TODO: Pass msg type
             raise NetlinkDumpInterruptedError("Netlink dump interrupted")
 
-    async def get_links(self) -> AsyncIterator[IFLink]:
-        data = _ifinfomsg()
-        seqno = self._send_nlmsg(RTM_GETLINK, NLM_F_REQUEST | NLM_F_DUMP, data)
+    async def get_links(
+        self, ifi_index: int = 0, ifi_name: str | None = None
+    ) -> AsyncIterator[IFLink]:
+        data = _ifinfomsg(index=ifi_index)
+        flags = NLM_F_REQUEST
+        if ifi_name is not None:
+            data += _nlattr(IFLA_IFNAME, ifi_name.encode("ascii") + b"\x00")
+        elif ifi_index == 0:
+            flags |= NLM_F_DUMP
+        seqno = self._send_nlmsg(RTM_GETLINK, flags, data)
         async for msg, group in self._recv(RTM_NEWLINK, seqno):
             assert group == 0
             data = memoryview(msg.data)
@@ -459,10 +482,46 @@ class NetlinkClient:
                 _nlattrs=dict(_parse_nlattrs(nlattrs_data)),
             )
 
+    async def get_link(
+        self, ifi_index: int = 0, ifi_name: str | None = None
+    ) -> IFLink | None:
+        if ifi_index == 0 and ifi_name is None:
+            raise ValueError("Link index or name is reuqired")
+        found_link: IFLink | None = None
+        try:
+            async for link in self.get_links(ifi_index=ifi_index, ifi_name=ifi_name):
+                found_link = link
+        except NetlinkOSError as e:
+            if e.errno == 19:
+                # [Errno 19] No such device
+                return None
+        assert found_link is not None
+        return found_link
+
 
 async def main() -> None:
+    import sys
+
+    ifi_index: int = 0
+    ifi_name: str | None = None
+    match sys.argv:
+        case [_, str(arg)]:
+            try:
+                ifi_index = int(arg)
+            except ValueError:
+                ifi_name = arg
+
     async with NetlinkClient() as nl:
-        async for link in nl.get_links():
+        links: list[IFLink]
+        if ifi_index != 0:
+            link = await nl.get_link(ifi_index=ifi_index, ifi_name=ifi_name)
+            if link:
+                links = [link]
+            else:
+                links = []
+        else:
+            links = [link async for link in nl.get_links()]
+        for link in links:
             print(f"{link.index}: {link.name}")
 
 
