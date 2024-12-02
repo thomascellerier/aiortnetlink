@@ -2,7 +2,13 @@ import struct
 from dataclasses import dataclass
 from typing import Final
 
-from aiortnetlink.netlink import NLMsg
+from aiortnetlink.netlink import (
+    NLM_F_DUMP,
+    NLM_F_REQUEST,
+    NetlinkGetRequest,
+    NLMsg,
+    encode_nlattr_str,
+)
 
 __all__ = ["IFLink", "RTM_NEWLINK", "RTM_GETLINK", "IFLA_IFNAME", "ifinfomsg"]
 
@@ -81,3 +87,16 @@ class IFLink:
             flags=ifi_flags,
             change=ifi_change,
         )
+
+
+def get_link_request(
+    ifi_index: int = 0, ifi_name: str | None = None
+) -> NetlinkGetRequest:
+    parts = [ifinfomsg(index=ifi_index)]
+    flags = NLM_F_REQUEST
+    if ifi_name is not None:
+        parts.append(encode_nlattr_str(IFLA_IFNAME, ifi_name))
+    elif ifi_index == 0:
+        flags |= NLM_F_DUMP
+    data = b"".join(parts)
+    return NetlinkGetRequest(RTM_GETLINK, flags, data, RTM_NEWLINK)

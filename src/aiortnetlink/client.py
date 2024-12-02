@@ -3,22 +3,23 @@ import os
 from types import TracebackType
 from typing import AsyncIterator, Self
 
-from aiortnetlink.link import IFLA_IFNAME, RTM_GETLINK, RTM_NEWLINK, IFLink, ifinfomsg
+from aiortnetlink.link import (
+    IFLink,
+    get_link_request,
+)
 from aiortnetlink.netlink import (
-    NLM_F_DUMP,
     NLM_F_DUMP_INTR,
     NLM_F_MULTI,
-    NLM_F_REQUEST,
     NLMSG_DONE,
     NLMSG_ERROR,
     NetlinkDumpInterruptedError,
     NetlinkError,
+    NetlinkGetRequest,
     NetlinkOSError,
     NetlinkProtocol,
     NLMsg,
     create_netlink_endpoint,
     decode_nlmsg_error,
-    encode_nlattr_str,
     encode_nlmsg,
 )
 
@@ -113,18 +114,17 @@ class NetlinkClient:
             # TODO: Pass msg type
             raise NetlinkDumpInterruptedError("Netlink dump interrupted")
 
+    async def _send_request(self, request: NetlinkGetRequest) -> AsyncIterator[NLMsg]:
+        seqno = self._send_nlmsg(request.msg_type, request.flags, request.data)
+        async for msg, group in self._recv(request.response_type, seqno):
+            assert group == 0
+            yield msg
+
     async def get_links(
         self, ifi_index: int = 0, ifi_name: str | None = None
     ) -> AsyncIterator[IFLink]:
-        data = [ifinfomsg(index=ifi_index)]
-        flags = NLM_F_REQUEST
-        if ifi_name is not None:
-            data.append(encode_nlattr_str(IFLA_IFNAME, ifi_name))
-        elif ifi_index == 0:
-            flags |= NLM_F_DUMP
-        seqno = self._send_nlmsg(RTM_GETLINK, flags, b"".join(data))
-        async for msg, group in self._recv(RTM_NEWLINK, seqno):
-            assert group == 0
+        request = get_link_request(ifi_index=ifi_index, ifi_name=ifi_name)
+        async for msg in self._send_request(request):
             yield IFLink.from_nlmsg(msg)
 
     async def get_link(

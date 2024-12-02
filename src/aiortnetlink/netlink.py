@@ -28,6 +28,7 @@ __all__ = [
     "NLAttr",
     "encode_nlmsg",
     "encode_nlattr_str",
+    "NetlinkGetRequest",
 ]
 
 
@@ -362,3 +363,10 @@ async def create_netlink_endpoint() -> tuple[DatagramTransport, NetlinkProtocol]
     return await asyncio.get_running_loop().create_datagram_endpoint(
         lambda: NetlinkProtocol(), sock=sock
     )
+
+
+class NetlinkGetRequest(NamedTuple):
+    msg_type: int
+    flags: int
+    data: bytes
+    response_type: int

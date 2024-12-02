@@ -17,11 +17,19 @@ async def main() -> None:
 
     async with NetlinkClient() as nl:
         if ifi_index != 0:
-            link = await nl.get_link(ifi_index=ifi_index, ifi_name=ifi_name)
+            link = await nl.get_link(ifi_index=ifi_index)
             if link:
                 links = [link]
             else:
-                links = []
+                print(f"Device with index {ifi_index} does not exist")
+                sys.exit(1)
+        elif ifi_name is not None:
+            link = await nl.get_link(ifi_name=ifi_name)
+            if link:
+                links = [link]
+            else:
+                print(f"Device {ifi_name!r} does not exist")
+                sys.exit(1)
         else:
             links = [link async for link in nl.get_links()]
         for link in links:
