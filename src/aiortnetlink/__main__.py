@@ -2,8 +2,6 @@ import asyncio
 
 from aiortnetlink import NetlinkClient
 
-__all__ = []
-
 
 async def main() -> None:
     import sys

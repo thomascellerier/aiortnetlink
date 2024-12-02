@@ -1,6 +1,6 @@
 import struct
 from dataclasses import dataclass
-from typing import Final, Self
+from typing import Final
 
 from aiortnetlink.netlink import NLMsg
 
@@ -59,7 +59,7 @@ class IFLink:
     name: str
 
     @classmethod
-    def from_nlmsg(cls, msg: NLMsg) -> Self:
+    def from_nlmsg(cls, msg: NLMsg) -> "IFLink":
         data = memoryview(msg.data)
         ifi_family, ifi_type, ifi_index, ifi_flags, ifi_change = struct.unpack(
             _IFINFOMSG_FMT, data[:_IFINFOMSG_SIZE]
