@@ -21,7 +21,8 @@ async with NetlinkClient() as nl:
 ## Supported features
 
 ### Links
-- `get_links`
+- `get_links`: List all links.
+- `get_link`: Lookup link by index or name.
 
 ### Addresses
 - TODO
