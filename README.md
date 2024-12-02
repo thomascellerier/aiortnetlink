@@ -4,6 +4,18 @@ Pure-python asyncio rtnetlink client.
 
 See https://docs.kernel.org/userspace-api/netlink/intro.html
 
+## Getting started
+
+Install:
+```
+pip install aiortnetlink
+```
+
+Or, adding to your uv project:
+```
+uv add aiortnetlink
+```
+
 Example:
 ```Python
 from aiortnetlink import NetlinkClient
@@ -15,6 +27,7 @@ async with NetlinkClient() as nl:
 
 ## Table of contents
 
+- [Getting started](#getting-started)
 - [Supported features](#supported-features)
 - [Development](#development)
 
