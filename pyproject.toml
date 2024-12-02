@@ -31,6 +31,7 @@ ruff-fmt = "uv run --group fmt ruff format src tests"
 ruff-fmt-check = "uv run --group fmt ruff format --check src tests"
 ruff-check = "uv run --group lint ruff check src tests"
 ruff-check-fix-imports = "uv run --group fmt ruff check --fix --select I src tests"
+ruff-check-fix = "uv run --group fmt ruff check --fix src tests"
 fmt = ["ruff-fmt", "ruff-check-fix-imports"]
 mypy = "uv run --group lint mypy src tests"
 lint = ["mypy", "ruff-check"]
