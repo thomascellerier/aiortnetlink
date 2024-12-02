@@ -1,0 +1,55 @@
+[project]
+name = "aiortnetlink"
+version = "0.2.0"
+description = "Netlink client for asyncio"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+authors = [
+  {name = "Thomas Cellerier"},
+]
+maintainers = [
+  {name = "Thomas Cellerier"},
+]
+
+[project.urls]
+source = "https://github.com/thomascellerier/aiortnetlink"
+
+[project.scripts]
+aiortnetlink = "aiortnetlink.cli:main"
+
+[dependency-groups]
+test = [
+  "pytest"
+]
+lint = [
+  "ruff",
+  "mypy",
+]
+fmt = [
+  "ruff"
+]
+task-runner = [
+  "poethepoet"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.mypy]
+strict = true
+
+[tool.poe.tasks]
+# TODO: Switch to uv's task system once its implemented
+# See https://github.com/astral-sh/uv/issues/5903
+ruff-fmt = "uv run --group fmt ruff format src tests"
+ruff-fmt-check = "uv run --group fmt ruff format --check src tests"
+ruff-check = "uv run --group lint ruff check src tests"
+ruff-check-fix-imports = "uv run --group fmt ruff check --fix --select I src tests"
+ruff-check-fix = "uv run --group fmt ruff check --fix src tests"
+fmt = ["ruff-fmt", "ruff-check-fix-imports"]
+mypy = "uv run --group lint mypy src tests"
+lint = ["mypy", "ruff-check"]
+tests = "env PYTHONPATH=src uv run --group test pytest -v tests"
+test = ["lint", "tests", "ruff-fmt-check"]
