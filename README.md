@@ -25,12 +25,6 @@ async with NetlinkClient() as nl:
         print(f"{link.index}: {link.name}")
 ```
 
-## Table of contents
-
-- [Getting started](#getting-started)
-- [Supported features](#supported-features)
-- [Development](#development)
-
 ## Supported features
 
 ### Links
