@@ -17,6 +17,9 @@ lint = [
 fmt = [
   "ruff"
 ]
+task-runner = [
+  "poethepoet"
+]
 
 [tool.mypy]
 strict = true
