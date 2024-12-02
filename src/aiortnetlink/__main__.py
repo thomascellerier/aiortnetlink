@@ -1,39 +1,10 @@
 import asyncio
 
-from aiortnetlink import NetlinkClient
+from aiortnetlink import cli
 
 
 async def main() -> None:
-    import sys
-
-    ifi_index: int = 0
-    ifi_name: str | None = None
-    match sys.argv:
-        case [_, str(arg)]:
-            try:
-                ifi_index = int(arg)
-            except ValueError:
-                ifi_name = arg
-
-    async with NetlinkClient() as nl:
-        if ifi_index != 0:
-            link = await nl.get_link(ifi_index=ifi_index)
-            if link:
-                links = [link]
-            else:
-                print(f"Device with index {ifi_index} does not exist")
-                sys.exit(1)
-        elif ifi_name is not None:
-            link = await nl.get_link(ifi_name=ifi_name)
-            if link:
-                links = [link]
-            else:
-                print(f"Device {ifi_name!r} does not exist")
-                sys.exit(1)
-        else:
-            links = [link async for link in nl.get_links()]
-        for link in links:
-            print(f"{link.index}: {link.name}")
+    await cli.run()
 
 
 asyncio.run(main())
