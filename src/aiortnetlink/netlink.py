@@ -5,15 +5,29 @@ See:
 """
 
 import asyncio
-from dataclasses import dataclass
-import os
 import socket
 import struct
-from types import TracebackType
-from typing import Iterator, AsyncIterator, Final, Self, NamedTuple, Any
+from asyncio import DatagramTransport
+from typing import Any, Final, Iterator, NamedTuple
 
 __all__ = [
+    "NetlinkOSError",
+    "NLM_F_DUMP",
+    "NLM_F_REQUEST",
+    "NetlinkDumpInterruptedError",
+    "NLM_F_DUMP_INTR",
+    "NLMSG_ERROR",
+    "decode_nlmsg_error",
+    "NLMSG_DONE",
+    "NetlinkError",
+    "NLM_F_MULTI",
     "NetlinkProtocol",
+    "create_netlink_endpoint",
+    "decode_nlattr_str",
+    "NLMsg",
+    "NLAttr",
+    "encode_nlmsg",
+    "encode_nlattr_str",
 ]
 
 
@@ -78,17 +92,6 @@ _NLA_SIZE: Final = struct.calcsize(_NLA_FMT)
 SOL_NETLINK: Final = 270
 NETLINK_EXT_ACK: Final = 11
 
-# See <linux/if_arp.h>
-ARPHRD_LOOPBACK: Final = 772
-ARPHRD_ETHER: Final = 1
-
-# See <linux/if_link.h>
-IFLA_UNSPEC: Final = 0
-IFLA_ADDRESS: Final = 1
-IFLA_BROADCAST: Final = 2
-IFLA_IFNAME: Final = 3
-# TODO: The rest of the values
-
 
 def _nlmsghdr(
     msg_len: int,
@@ -109,6 +112,14 @@ def _nlmsghdr(
     return struct.pack(_NLMSGHDR_FMT, msg_len, msg_type, flags, seq, pid)
 
 
+class NLAttr(NamedTuple):
+    attr_type: int
+    data: memoryview
+
+    def as_string(self) -> str:
+        return decode_nlattr_str(self.data)
+
+
 class NLMsg(NamedTuple):
     msg_len: int
     msg_type: int
@@ -116,6 +127,23 @@ class NLMsg(NamedTuple):
     seq: int
     pid: int
     data: memoryview
+
+    def attrs(self, type_header_size: int) -> Iterator[NLAttr]:
+        yield from _parse_nlattrs(self.data[type_header_size : self.msg_len])
+
+
+def encode_nlmsg(
+    msg_type: int, flags: int, data: bytes, seqno: int, pid: int = 0
+) -> bytes:
+    msg_len = _NLMSGHDR_SIZE + len(data)
+    header = _nlmsghdr(
+        msg_len=msg_len,
+        msg_type=msg_type,
+        flags=flags,
+        seq=seqno,
+        pid=pid,
+    )
+    return header + data
 
 
 def _genmsghdr(
@@ -133,35 +161,6 @@ def _genmsghdr(
     return struct.pack(_GENMSGHDR_FMT, cmd, version, reserved)
 
 
-RTM_NEWLINK: Final = 16
-RTM_DELLINK: Final = 17
-RTM_GETLINK: Final = 18
-
-_IFINFOMSG_FMT: Final = "BxHiII"
-_IFINFOMSG_SIZE: Final = struct.calcsize(_IFINFOMSG_FMT)
-
-
-def _ifinfomsg(
-    family: int = 0,
-    ifi_type: int = 0,
-    index: int = 0,
-    flags: int = 0,
-    change: int = 0,
-) -> bytes:
-    """
-
-    struct ifinfomsg {
-        unsigned char  ifi_family; /* AF_UNSPEC */
-        unsigned char  __ifi_pad;
-        unsigned short ifi_type;   /* Device type */
-        int            ifi_index;  /* Interface index */
-        unsigned int   ifi_flags;  /* Device flags  */
-        unsigned int   ifi_change; /* change mask */
-    };
-    """
-    return struct.pack(_IFINFOMSG_FMT, family, ifi_type, index, flags, change)
-
-
 def _nlattr(
     nla_type: int,
     nla_data: bytes,
@@ -171,18 +170,16 @@ def _nlattr(
     return struct.pack(_NLA_FMT, nla_len, nla_type) + nla_data + b"\x00" * padding_size
 
 
-@dataclass(slots=True)
-class IFLink:
-    family: int
-    if_type: int
-    index: int
-    flags: int
-    change: int
-    _nlattrs: dict[int, memoryview]
+def decode_nlattr_str(data: memoryview) -> str:
+    """
+    Netlink attribute strings are c-style nul-byte terminated ascii strings.
+    We know their size in advance thanks to the nl attr length.
+    """
+    return data.tobytes().rstrip(b"\x00").decode("ascii")
 
-    @property
-    def name(self) -> str:
-        return self._nlattrs[3].tobytes().rstrip(b"\x00").decode("ascii")
+
+def encode_nlattr_str(nla_type: int, value: str) -> bytes:
+    return _nlattr(nla_type, value.encode("ascii") + b"\x00")
 
 
 class NetlinkError(Exception):
@@ -332,198 +329,36 @@ class NetlinkProtocol(asyncio.DatagramProtocol):
         assert False, "unreachable"
 
 
-def _parse_nlmsg_error(data: bytes) -> int:
+def decode_nlmsg_error(data: memoryview) -> int:
     (nl_errno,) = struct.unpack("i", data[:4])
     assert type(nl_errno) is int
     return nl_errno
 
 
-def _parse_nlattrs(data: memoryview) -> Iterator[tuple[int, memoryview]]:
+def _parse_nlattrs(data: memoryview) -> Iterator[NLAttr]:
     pos = 0
     size = len(data)
     while pos < size:
         attr_len, attr_type = struct.unpack("HH", data[pos : pos + 4])
-        yield attr_type, data[pos + 4 : pos + attr_len]
+        yield NLAttr(attr_type, data[pos + 4 : pos + attr_len])
 
         # nlattrs are 4 byte ligend
         attr_len_aligned = attr_len + ((4 - (attr_len % 4)) % 4)
         pos += attr_len_aligned
 
 
-class NetlinkClient:
-    def __init__(self) -> None:
-        self._transport: asyncio.DatagramTransport | None = None
-        self._protocol: NetlinkProtocol | None = None
-        self._seqno = 0
-        self._recvbuf_actual_size: int | None = None
-
-    async def __aenter__(self) -> Self:
-        loop = asyncio.get_running_loop()
-        sock = socket.socket(
-            type=socket.SOCK_DGRAM, family=socket.AF_NETLINK, proto=NETLINK_ROUTE
-        )
-        self._rcvbuf_actual_size = sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
-
-        sock.setsockopt(SOL_NETLINK, NETLINK_EXT_ACK, 1)
-
-        # See https://docs.kernel.org/userspace-api/netlink/intro.html#strict-checking
-        sock.setsockopt(SOL_NETLINK, NETLINK_GET_STRICT_CHK, 1)
-
-        transport, protocol = await loop.create_datagram_endpoint(
-            lambda: NetlinkProtocol(), sock=sock
-        )
-        self._transport = transport
-
-        self._protocol = protocol
-        return self
-
-    async def __aexit__(
-        self, exc_type: type[Exception], exc_value: Exception, traceback: TracebackType
-    ) -> None:
-        assert self._transport is not None
-        self._transport.close()
-
-    async def _recv_msg(self) -> tuple[NLMsg, int]:
-        protocol = self._protocol
-        assert protocol is not None
-        item = await protocol.get()
-        match item:
-            case Exception() as exc:
-                raise exc
-            case NLMsg() as msg, int(group):
-                return msg, group
-            case _:
-                assert False, "unreachable"
-
-    def _send_nlmsg(self, msg_type: int, flags: int, data: bytes) -> int:
-        """
-        Send a netlink message and return its sequence number.
-        """
-        assert self._transport is not None
-
-        seqno = self._seqno
-        self._seqno += 1
-
-        msg_len = _NLMSGHDR_SIZE + len(data)
-        header = _nlmsghdr(
-            msg_len=msg_len,
-            msg_type=msg_type,
-            flags=flags,
-            seq=seqno,
-            pid=0,
-        )
-        msg = header + data
-        self._transport.sendto(msg, (0, 0))
-        return seqno
-
-    async def _recv(
-        self, msg_type: int, seqno: int | None = None
-    ) -> AsyncIterator[tuple[NLMsg, int]]:
-        interrupted = False
-        while True:
-            msg, group = await self._recv_msg()
-
-            if seqno is not None and msg.seq != seqno:
-                print(f"Invalid seqno, expected {seqno} but got {msg.seq}")
-
-            if bool(msg.flags & NLM_F_DUMP_INTR):
-                # Defer the interrupted error to yield as much data as possible.
-                # The application can then decide whether to use the partial dump or not.
-                interrupted = True
-
-            if msg.msg_type == msg_type:
-                yield msg, group
-
-            elif msg.msg_type == NLMSG_ERROR:
-                nl_errno = _parse_nlmsg_error(msg.data)
-                if nl_errno == 0:
-                    # A netlink acknowledgment is an NLMSG_ERROR packet with the error field set to 0.
-                    break
-
-                raise NetlinkOSError(-nl_errno, os.strerror(-nl_errno))
-
-            elif msg.msg_type == NLMSG_DONE:
-                break
-
-            else:
-                raise NetlinkError(f"Unhandled netlink type {msg.msg_type}")
-
-            if not bool(msg.flags & NLM_F_MULTI):
-                break
-
-        if interrupted:
-            # TODO: Pass msg type
-            raise NetlinkDumpInterruptedError("Netlink dump interrupted")
-
-    async def get_links(
-        self, ifi_index: int = 0, ifi_name: str | None = None
-    ) -> AsyncIterator[IFLink]:
-        data = _ifinfomsg(index=ifi_index)
-        flags = NLM_F_REQUEST
-        if ifi_name is not None:
-            data += _nlattr(IFLA_IFNAME, ifi_name.encode("ascii") + b"\x00")
-        elif ifi_index == 0:
-            flags |= NLM_F_DUMP
-        seqno = self._send_nlmsg(RTM_GETLINK, flags, data)
-        async for msg, group in self._recv(RTM_NEWLINK, seqno):
-            assert group == 0
-            data = memoryview(msg.data)
-            ifi_family, ifi_type, ifi_index, ifi_flags, ifi_change = struct.unpack(
-                _IFINFOMSG_FMT, data[:_IFINFOMSG_SIZE]
-            )
-            pos = _IFINFOMSG_SIZE
-            nlattrs_data = data[pos : msg.msg_len]
-            yield IFLink(
-                family=ifi_family,
-                index=ifi_index,
-                if_type=ifi_type,
-                flags=ifi_flags,
-                change=ifi_change,
-                _nlattrs=dict(_parse_nlattrs(nlattrs_data)),
-            )
-
-    async def get_link(
-        self, ifi_index: int = 0, ifi_name: str | None = None
-    ) -> IFLink | None:
-        if ifi_index == 0 and ifi_name is None:
-            raise ValueError("Link index or name is reuqired")
-        found_link: IFLink | None = None
-        try:
-            async for link in self.get_links(ifi_index=ifi_index, ifi_name=ifi_name):
-                found_link = link
-        except NetlinkOSError as e:
-            if e.errno == 19:
-                # [Errno 19] No such device
-                return None
-        assert found_link is not None
-        return found_link
+def _netlink_socket() -> socket.socket:
+    sock = socket.socket(
+        type=socket.SOCK_DGRAM, family=socket.AF_NETLINK, proto=NETLINK_ROUTE
+    )
+    sock.setsockopt(SOL_NETLINK, NETLINK_EXT_ACK, 1)
+    # See https://docs.kernel.org/userspace-api/netlink/intro.html#strict-checking
+    sock.setsockopt(SOL_NETLINK, NETLINK_GET_STRICT_CHK, 1)
+    return sock
 
 
-async def main() -> None:
-    import sys
-
-    ifi_index: int = 0
-    ifi_name: str | None = None
-    match sys.argv:
-        case [_, str(arg)]:
-            try:
-                ifi_index = int(arg)
-            except ValueError:
-                ifi_name = arg
-
-    async with NetlinkClient() as nl:
-        links: list[IFLink]
-        if ifi_index != 0:
-            link = await nl.get_link(ifi_index=ifi_index, ifi_name=ifi_name)
-            if link:
-                links = [link]
-            else:
-                links = []
-        else:
-            links = [link async for link in nl.get_links()]
-        for link in links:
-            print(f"{link.index}: {link.name}")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+async def create_netlink_endpoint() -> tuple[DatagramTransport, NetlinkProtocol]:
+    sock = _netlink_socket()
+    return await asyncio.get_running_loop().create_datagram_endpoint(
+        lambda: NetlinkProtocol(), sock=sock
+    )

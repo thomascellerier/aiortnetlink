@@ -29,8 +29,9 @@ strict = true
 # See https://github.com/astral-sh/uv/issues/5903
 ruff-fmt = "uv run --group fmt ruff format src tests"
 ruff-fmt-check = "uv run --group fmt ruff format --check src tests"
-fmt = ["ruff-fmt"]
 ruff-check = "uv run --group lint ruff check src tests"
+ruff-check-fix-imports = "uv run --group fmt ruff check --fix --select I src tests"
+fmt = ["ruff-fmt", "ruff-check-fix-imports"]
 mypy = "uv run --group lint mypy src tests"
 lint = ["mypy", "ruff-check"]
 tests = "env PYTHONPATH=src uv run --group test pytest -v tests"

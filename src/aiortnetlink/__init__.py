@@ -1,3 +1,3 @@
-from aiortnetlink.netlink import NetlinkClient
+from aiortnetlink.client import NetlinkClient
 
 __all__ = ["NetlinkClient"]
