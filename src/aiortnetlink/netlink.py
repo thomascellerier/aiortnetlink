@@ -199,6 +199,10 @@ class NetlinkDumpInterruptedError(NetlinkError):
     pass
 
 
+class NetlinkValueError(NetlinkError, ValueError):
+    pass
+
+
 class NetlinkProtocol(asyncio.DatagramProtocol):
     def __init__(
         self,

@@ -30,7 +30,7 @@ IFLA_IFNAME: Final = 3
 # TODO: The rest of the values
 
 
-_IFINFOMSG_FMT: Final = "BxHiII"
+_IFINFOMSG_FMT: Final = b"BxHiII"
 _IFINFOMSG_SIZE: Final = struct.calcsize(_IFINFOMSG_FMT)
 
 

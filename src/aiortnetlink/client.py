@@ -3,6 +3,7 @@ import os
 from types import TracebackType
 from typing import AsyncIterator, Self
 
+from aiortnetlink.address import IFAddr, get_addr_request
 from aiortnetlink.link import (
     IFLink,
     get_link_request,
@@ -142,3 +143,10 @@ class NetlinkClient:
                 return None
         assert found_link is not None
         return found_link
+
+    async def get_addrs(
+        self, ifi_index: int = 0, ifi_name: str | None = None
+    ) -> AsyncIterator[IFAddr]:
+        request = get_addr_request(ifi_index=ifi_index, ifi_name=ifi_name)
+        async for msg in self._send_request(request):
+            yield IFAddr.from_nlmsg(msg)

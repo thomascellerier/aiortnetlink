@@ -18,6 +18,14 @@ async def run() -> None:
     link_show_parser = link_subparsers.add_parser("show")
     link_show_parser.add_argument("DEV", default=None, nargs="?")
 
+    addr_parser = subparsers.add_parser("address")
+    addr_subparsers = addr_parser.add_subparsers(
+        title="command", dest="command", required=True
+    )
+
+    addr_show_parser = addr_subparsers.add_parser("show")
+    addr_show_parser.add_argument("DEV", default=None, nargs="?")
+
     args = parser.parse_args()
 
     async with NetlinkClient() as nl:
@@ -49,6 +57,24 @@ async def run() -> None:
                     links = [link async for link in nl.get_links()]
                 for link in links:
                     print(f"{link.index}: {link.name}")
+
+            case argparse.Namespace(object="address", command="show"):
+                from collections import defaultdict
+
+                addrs_by_if_index = defaultdict(list)
+                async for addr in nl.get_addrs():
+                    addrs_by_if_index[addr.if_index].append(addr)
+
+                link_by_if_index = {link.index: link async for link in nl.get_links()}
+
+                for if_index in sorted(addrs_by_if_index):
+                    addrs = addrs_by_if_index[if_index]
+                    link = link_by_if_index[if_index]
+                    print(f"{if_index}: {link.name}")
+                    for addr in addrs:
+                        print(
+                            f"    {'inet' if addr.ip_version == 4 else 'inet6'} {addr.interface}"
+                        )
 
             case _:
                 assert False, ""

@@ -32,7 +32,7 @@ async with NetlinkClient() as nl:
 - `get_link`: Lookup link by index or name.
 
 ### Addresses
-- TODO
+- `get_links`: List all addresses.
 
 ### Routes
 - TODO
