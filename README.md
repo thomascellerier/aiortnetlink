@@ -35,7 +35,7 @@ async with NetlinkClient() as nl:
 - `get_links`: List all addresses.
 
 ### Routes
-- TODO
+- `get_routes`: List all routes.
 
 ### Rules
 - TODO

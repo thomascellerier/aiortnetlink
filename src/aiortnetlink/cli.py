@@ -5,26 +5,54 @@ from aiortnetlink import NetlinkClient
 
 __all__ = ["run"]
 
+from aiortnetlink.route import parse_rt_tables
+
 
 async def run() -> None:
     parser = argparse.ArgumentParser("aiortnetlink")
     subparsers = parser.add_subparsers(title="object", dest="object", required=True)
 
+    # link
     link_parser = subparsers.add_parser("link", aliases=["l"])
     link_subparsers = link_parser.add_subparsers(
         title="command", dest="command", required=True
     )
 
+    # link show
     link_show_parser = link_subparsers.add_parser("show", aliases=["s"])
     link_show_parser.add_argument("DEV", default=None, nargs="?")
 
+    # addr
     addr_parser = subparsers.add_parser("address", aliases=["addr", "a"])
     addr_subparsers = addr_parser.add_subparsers(
         title="command", dest="command", required=True
     )
 
+    # addr show
     addr_show_parser = addr_subparsers.add_parser("show", aliases=["s"])
     addr_show_parser.add_argument("DEV", default=None, nargs="?")
+
+    # route
+    route_parser = subparsers.add_parser("route", aliases=["ro", "r"])
+    route_subparsers = route_parser.add_subparsers(
+        title="command", dest="command", required=True
+    )
+
+    # route show
+    route_show_parser = route_subparsers.add_parser("show", aliases=["s"])
+    route_show_parser.add_argument("DEV", default=None, nargs="?")
+    route_show_parser.add_argument(
+        "-t", "--table", help="routing table id", type=int, default=None
+    )
+    route_show_parser.add_argument(
+        "-n",
+        "--numeric",
+        help="don't map table id to table name",
+        action="store_true",
+    )
+    route_show_ip_version_group = route_show_parser.add_mutually_exclusive_group()
+    route_show_ip_version_group.add_argument("-4", "--ipv4", action="store_true")
+    route_show_ip_version_group.add_argument("-6", "--ipv6", action="store_true")
 
     args = parser.parse_args()
 
@@ -77,6 +105,26 @@ async def run() -> None:
                         print(
                             f"    {'inet' if addr.ip_version == 4 else 'inet6'} {addr.interface}"
                         )
+
+            case argparse.Namespace(
+                object="route" | "ro" | "r", command="show" | "s", table=table
+            ):
+                if not args.numeric:
+                    table_id_to_name = parse_rt_tables()
+
+                if args.ipv4:
+                    ip_versions: tuple[int, ...] = (4,)
+                elif args.ipv6:
+                    ip_versions = (6,)
+                else:
+                    ip_versions = (4, 6)
+
+                async for route in nl.get_routes():
+                    if table and table != route.table:
+                        continue
+                    if route.ip_version not in ip_versions:
+                        continue
+                    print(f"{table_id_to_name.get(route.table, route.table)}: {route=}")
 
             case _:
                 assert False, ""

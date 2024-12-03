@@ -26,6 +26,8 @@ from aiortnetlink.netlink import (
 
 __all__ = ["NetlinkClient"]
 
+from aiortnetlink.route import Route, get_route_request
+
 
 class NetlinkClient:
     def __init__(self) -> None:
@@ -150,3 +152,8 @@ class NetlinkClient:
         request = get_addr_request(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
             yield IFAddr.from_nlmsg(msg)
+
+    async def get_routes(self) -> AsyncIterator[Route]:
+        request = get_route_request()
+        async for msg in self._send_request(request):
+            yield Route.from_nlmsg(msg)
