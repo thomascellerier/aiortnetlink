@@ -10,27 +10,27 @@ async def run() -> None:
     parser = argparse.ArgumentParser("aiortnetlink")
     subparsers = parser.add_subparsers(title="object", dest="object", required=True)
 
-    link_parser = subparsers.add_parser("link")
+    link_parser = subparsers.add_parser("link", aliases=["l"])
     link_subparsers = link_parser.add_subparsers(
         title="command", dest="command", required=True
     )
 
-    link_show_parser = link_subparsers.add_parser("show")
+    link_show_parser = link_subparsers.add_parser("show", aliases=["s"])
     link_show_parser.add_argument("DEV", default=None, nargs="?")
 
-    addr_parser = subparsers.add_parser("address")
+    addr_parser = subparsers.add_parser("address", aliases=["addr", "a"])
     addr_subparsers = addr_parser.add_subparsers(
         title="command", dest="command", required=True
     )
 
-    addr_show_parser = addr_subparsers.add_parser("show")
+    addr_show_parser = addr_subparsers.add_parser("show", aliases=["s"])
     addr_show_parser.add_argument("DEV", default=None, nargs="?")
 
     args = parser.parse_args()
 
     async with NetlinkClient() as nl:
         match args:
-            case argparse.Namespace(object="link", command="show", DEV=dev):
+            case argparse.Namespace(object="link" | "l", command="show" | "s", DEV=dev):
                 ifi_index: int = 0
                 ifi_name: str | None = None
                 if dev is not None:
@@ -58,7 +58,9 @@ async def run() -> None:
                 for link in links:
                     print(f"{link.index}: {link.name}")
 
-            case argparse.Namespace(object="address", command="show"):
+            case argparse.Namespace(
+                object="address" | "addr" | "a", command="show" | "s"
+            ):
                 from collections import defaultdict
 
                 addrs_by_if_index = defaultdict(list)
