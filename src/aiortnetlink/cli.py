@@ -40,7 +40,6 @@ async def run() -> None:
 
     # route show
     route_show_parser = route_subparsers.add_parser("show", aliases=["s"])
-    route_show_parser.add_argument("DEV", default=None, nargs="?")
     route_show_parser.add_argument(
         "-t", "--table", help="routing table id", type=int, default=None
     )
@@ -53,6 +52,18 @@ async def run() -> None:
     route_show_ip_version_group = route_show_parser.add_mutually_exclusive_group()
     route_show_ip_version_group.add_argument("-4", "--ipv4", action="store_true")
     route_show_ip_version_group.add_argument("-6", "--ipv6", action="store_true")
+
+    # rule
+    rule_parser = subparsers.add_parser("rule", aliases=["ru"])
+    rule_subparsers = rule_parser.add_subparsers(
+        title="command", dest="command", required=True
+    )
+
+    # rule show
+    rule_show_parser = rule_subparsers.add_parser("show", aliases=["s"])
+    rule_show_ip_version_group = rule_show_parser.add_mutually_exclusive_group()
+    rule_show_ip_version_group.add_argument("-4", "--ipv4", action="store_true")
+    rule_show_ip_version_group.add_argument("-6", "--ipv6", action="store_true")
 
     args = parser.parse_args()
 
@@ -127,6 +138,23 @@ async def run() -> None:
                     if route.ip_version not in ip_versions:
                         continue
                     print(f"{table_id_to_name.get(route.table, route.table)}: {route=}")
+
+            case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
+                if args.ipv4:
+                    ip_versions = (4,)
+                elif args.ipv6:
+                    ip_versions = (6,)
+                else:
+                    ip_versions = (4, 6)
+
+                async for rule in nl.get_rules():
+                    if rule.family > 127:
+                        # Values up to 127 are reserved for real address
+                        # families, values above 128 may be used arbitrarily.
+                        continue
+                    if rule.ip_version not in ip_versions:
+                        continue
+                    print(f"{rule=}")
 
             case _:
                 assert False, ""

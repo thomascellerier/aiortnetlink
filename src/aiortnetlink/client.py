@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from aiortnetlink.address import IFAddr
     from aiortnetlink.link import IFLink
     from aiortnetlink.route import Route
+    from aiortnetlink.rule import Rule
 
 
 __all__ = ["NetlinkClient"]
@@ -66,6 +67,12 @@ def _route_type() -> type[Route]:
     return Route
 
 
+def _rule_type() -> type[Rule]:
+    from aiortnetlink.rule import Rule
+
+    return Rule
+
+
 class NetlinkClient:
     def __init__(self) -> None:
         self._transport: asyncio.DatagramTransport | None = None
@@ -77,6 +84,7 @@ class NetlinkClient:
         self._iflink_type = _LazyType(_iflink_type)
         self._ifaddr_type = _LazyType(_ifaddr_type)
         self._route_type = _LazyType(_route_type)
+        self._rule_type = _LazyType(_rule_type)
 
     async def __aenter__(self) -> Self:
         transport, protocol = await create_netlink_endpoint()
@@ -169,7 +177,7 @@ class NetlinkClient:
         self, ifi_index: int = 0, ifi_name: str | None = None
     ) -> AsyncIterator[IFLink]:
         iflink_type = self._iflink_type()
-        request = iflink_type.rtm_request_get(ifi_index=ifi_index, ifi_name=ifi_name)
+        request = iflink_type.rtm_get(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
             yield iflink_type.from_nlmsg(msg)
 
@@ -193,12 +201,18 @@ class NetlinkClient:
         self, ifi_index: int = 0, ifi_name: str | None = None
     ) -> AsyncIterator[IFAddr]:
         ifaddr_type = self._ifaddr_type()
-        request = ifaddr_type.rtm_request_get(ifi_index=ifi_index, ifi_name=ifi_name)
+        request = ifaddr_type.rtm_get(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
             yield ifaddr_type.from_nlmsg(msg)
 
     async def get_routes(self) -> AsyncIterator[Route]:
         route_type = self._route_type()
-        request = route_type.rtm_request_get()
+        request = route_type.rtm_get()
         async for msg in self._send_request(request):
             yield route_type.from_nlmsg(msg)
+
+    async def get_rules(self) -> AsyncIterator[Rule]:
+        rule_type = self._rule_type()
+        request = rule_type.rtm_get()
+        async for msg in self._send_request(request):
+            yield rule_type.from_nlmsg(msg)

@@ -121,7 +121,7 @@ class IFAddr:
         )
 
     @classmethod
-    def rtm_request_get(
+    def rtm_get(
         cls, ifi_index: int = 0, ifi_name: str | None = None
     ) -> NetlinkGetRequest:
         return get_addr_request(ifi_index, ifi_name)

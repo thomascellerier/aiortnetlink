@@ -2,11 +2,11 @@ import os
 import socket
 import struct
 from dataclasses import dataclass
-from typing import Final, Literal
+from typing import Final, Literal, NamedTuple
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
 
-__all__ = ["rtmsg", "get_route_request", "Route", "parse_rt_tables"]
+__all__ = ["RTMsg", "get_route_request", "Route", "parse_rt_tables"]
 
 RTM_NEWROUTE: Final = 24
 RTM_DELROUTE: Final = 25
@@ -16,17 +16,7 @@ _RTMSG_FMT = b"BBBBBBBBI"
 _RTMSG_SIZE = struct.calcsize(_RTMSG_FMT)
 
 
-def rtmsg(
-    family: int = 0,
-    dst_len: int = 0,
-    src_len: int = 0,
-    tos: int = 0,
-    table: int = 0,
-    protocol: int = 0,
-    scope: int = 0,
-    rtm_type: int = 0,
-    flags: int = 0,
-) -> bytes:
+class RTMsg(NamedTuple):
     """
     struct rtmsg {
         unsigned char rtm_family;   /* Address family of route */
@@ -42,22 +32,27 @@ def rtmsg(
         unsigned int  rtm_flags;
     };
     """
-    return struct.pack(
-        _RTMSG_FMT,
-        family,
-        dst_len,
-        src_len,
-        tos,
-        table,
-        protocol,
-        scope,
-        rtm_type,
-        flags,
-    )
+
+    family: int = 0
+    dst_len: int = 0
+    src_len: int = 0
+    tos: int = 0
+    table: int = 0
+    protocol: int = 0
+    scope: int = 0
+    rtm_type: int = 0
+    flags: int = 0
+
+    @classmethod
+    def decode[BufferT: (bytes, memoryview)](cls, data: BufferT) -> "tuple[RTMsg, int]":
+        return RTMsg(*struct.unpack(_RTMSG_FMT, data[:_RTMSG_SIZE])), _RTMSG_SIZE
+
+    def encode(self) -> bytes:
+        return struct.pack(_RTMSG_FMT, *self)
 
 
 def get_route_request() -> NetlinkGetRequest:
-    parts = [rtmsg()]
+    parts = [RTMsg().encode()]
     flags = NLM_F_REQUEST | NLM_F_DUMP
     data = b"".join(parts)
     return NetlinkGetRequest(RTM_GETROUTE, flags, data, RTM_NEWROUTE)
@@ -88,36 +83,26 @@ class Route:
     @classmethod
     def from_nlmsg(cls, msg: NLMsg) -> "Route":
         data = memoryview(msg.data)
-        (
-            rtm_family,
-            rtm_dst_len,
-            rtm_src_len,
-            rtm_tos,
-            rtm_table,
-            rtm_protocol,
-            rtm_scope,
-            rtm_type,
-            flags,
-        ) = struct.unpack(_RTMSG_FMT, data[:_RTMSG_SIZE])
+        rtm, rtm_size = RTMsg.decode(data)
 
-        for nlattr in msg.attrs(_RTMSG_SIZE):
+        for nlattr in msg.attrs(rtm_size):
             # TODO: Parse nlattrs
             pass
 
         return Route(
-            family=rtm_family,
-            dst_len=rtm_dst_len,
-            src_len=rtm_src_len,
-            tos=rtm_tos,
-            table=rtm_table,
-            protocol=rtm_protocol,
-            scope=rtm_scope,
-            rtm_type=rtm_type,
-            flags=flags,
+            family=rtm.family,
+            dst_len=rtm.dst_len,
+            src_len=rtm.src_len,
+            tos=rtm.tos,
+            table=rtm.table,
+            protocol=rtm.protocol,
+            scope=rtm.scope,
+            rtm_type=rtm.rtm_type,
+            flags=rtm.flags,
         )
 
     @classmethod
-    def rtm_request_get(cls) -> NetlinkGetRequest:
+    def rtm_get(cls) -> NetlinkGetRequest:
         return get_route_request()
 
 
