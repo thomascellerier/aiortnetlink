@@ -24,11 +24,10 @@ if TYPE_CHECKING:
     from types import TracebackType
     from typing import TYPE_CHECKING, AsyncIterator, Callable, Self
 
-    from aiortnetlink.address import IFAddr
-
     # NOTE: These modules should only be imported at type checking time!
     # We want the actual import to happen lazily to keep the module fast when
     # using only a subset of the functionality.
+    from aiortnetlink.address import IFAddr
     from aiortnetlink.link import IFLink
     from aiortnetlink.route import Route
 
