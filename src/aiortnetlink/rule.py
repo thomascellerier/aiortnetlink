@@ -4,12 +4,9 @@ from typing import Final, Literal
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
 from aiortnetlink.route import RTMsg
+from aiortnetlink.rtm import RTM_GETRULE, RTM_NEWRULE
 
 __all__ = ["Rule"]
-
-RTM_NEWRULE: Final = 32
-RTM_DELRULE: Final = 33
-RTM_GETRULE: Final = 34
 
 # See <uapi/linux/rtnetlink.h>
 # rtnetlink families. Values up to 127 are reserved for real address

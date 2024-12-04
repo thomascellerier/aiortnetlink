@@ -1,0 +1,67 @@
+"""
+See https://man7.org/linux/man-pages/man7/rtnetlink.7.html
+"""
+
+from typing import Final
+
+__all__ = [
+    "RTM_NEWLINK",
+    "RTM_DELLINK",
+    "RTM_GETLINK",
+    "RTM_NEWADDR",
+    "RTM_DELADDR",
+    "RTM_GETADDR",
+    "RTM_NEWROUTE",
+    "RTM_GETROUTE",
+    "RTM_DELROUTE",
+    "RTM_NEWRULE",
+    "RTM_DELRULE",
+    "RTM_GETRULE",
+    "RTNLGRP_LINK",
+    "RTNLGRP_IPV4_ROUTE",
+    "RTNLGRP_IPV4_RULE",
+    "RTNLGRP_IPV4_IFADDR",
+    "RTNLGRP_IPV6_ROUTE",
+    "RTNLGRP_IPV6_RULE",
+    "RTNLGRP_IPV6_IFADDR",
+]
+
+# See <uapi/linux/rtnetlink.h>
+RTM_NEWLINK: Final = 16
+RTM_DELLINK: Final = 17
+RTM_GETLINK: Final = 18
+
+RTM_NEWADDR: Final = 20
+RTM_DELADDR: Final = 21
+RTM_GETADDR: Final = 22
+
+RTM_NEWROUTE: Final = 24
+RTM_DELROUTE: Final = 25
+RTM_GETROUTE: Final = 26
+
+RTM_NEWRULE: Final = 32
+RTM_DELRULE: Final = 33
+RTM_GETRULE: Final = 34
+
+RTNLGRP_LINK: Final = 1
+RTNLGRP_NOTIFY: Final = 2
+RTNLGRP_NEIGH: Final = 3
+RTNLGRP_TC: Final = 4
+
+RTNLGRP_IPV4_IFADDR: Final = 5
+RTNLGRP_IPV4_MROUTE: Final = 6
+RTNLGRP_IPV4_ROUTE: Final = 7
+RTNLGRP_IPV4_RULE: Final = 8
+
+RTNLGRP_IPV6_IFADDR: Final = 9
+RTNLGRP_IPV6_MROUTE: Final = 10
+RTNLGRP_IPV6_ROUTE: Final = 11
+RTNLGRP_IPV6_IFINFO: Final = 12
+
+RTNLGRP_NOP2: Final = 13
+RTNLGRP_DECnet_ROUTE: Final = 14
+RTNLGRP_DECnet_RULE: Final = 15
+RTNLGRP_NOP4: Final = 16
+
+RTNLGRP_IPV6_PREFIX: Final = 17
+RTNLGRP_IPV6_RULE: Final = 18

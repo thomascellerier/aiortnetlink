@@ -19,12 +19,9 @@ from aiortnetlink.netlink import (
     NLMsg,
     encode_nlattr_str,
 )
+from aiortnetlink.rtm import RTM_GETADDR, RTM_NEWADDR
 
 __all__ = ["ifaddrmsg", "get_addr_request", "IFAddr"]
-
-RTM_NEWADDR: Final = 20
-RTM_DELADDR: Final = 21
-RTM_GETADDR: Final = 22
 
 IFA_UNSPEC: Final = 0
 IFA_ADDRESS: Final = 1

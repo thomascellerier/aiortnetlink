@@ -9,14 +9,9 @@ from aiortnetlink.netlink import (
     NLMsg,
     encode_nlattr_str,
 )
+from aiortnetlink.rtm import RTM_GETLINK, RTM_NEWLINK
 
-__all__ = ["IFLink", "RTM_NEWLINK", "RTM_GETLINK", "IFLA_IFNAME", "ifinfomsg"]
-
-
-# See <linux/rtnetlink.h>
-RTM_NEWLINK: Final = 16
-RTM_DELLINK: Final = 17
-RTM_GETLINK: Final = 18
+__all__ = ["IFLink", "IFLA_IFNAME", "ifinfomsg"]
 
 # See <linux/if_arp.h>
 ARPHRD_LOOPBACK: Final = 772
@@ -28,7 +23,6 @@ IFLA_ADDRESS: Final = 1
 IFLA_BROADCAST: Final = 2
 IFLA_IFNAME: Final = 3
 # TODO: The rest of the values
-
 
 _IFINFOMSG_FMT: Final = b"BxHiII"
 _IFINFOMSG_SIZE: Final = struct.calcsize(_IFINFOMSG_FMT)

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import collections
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from aiortnetlink.netlink import (
     NLM_F_DUMP_INTR,
@@ -74,11 +75,18 @@ def _rule_type() -> type[Rule]:
 
 
 class NetlinkClient:
-    def __init__(self) -> None:
+    def __init__(self, pid: int = 0, groups: Iterable[int] = ()) -> None:
         self._transport: asyncio.DatagramTransport | None = None
         self._protocol: NetlinkProtocol | None = None
         self._seqno = 0
         self._recvbuf_actual_size: int | None = None
+        self._pid = pid
+
+        # Calculate group mask used for netlink notifications, 0 means do not listen for notifications.
+        group_mask = 0
+        for group in groups:
+            group_mask |= 1 << (group - 1)
+        self._groups = group_mask
 
         # Use lazy loaders to keep start up times fast when using only a subset of the functionality
         self._iflink_type = _LazyType(_iflink_type)
@@ -86,8 +94,13 @@ class NetlinkClient:
         self._route_type = _LazyType(_route_type)
         self._rule_type = _LazyType(_rule_type)
 
+        # Buffered notifications, this allows receiving notifications while processing a response on the same socket.
+        self._notifications: collections.deque[tuple[NLMsg, int]] = collections.deque()
+
     async def __aenter__(self) -> Self:
-        transport, protocol = await create_netlink_endpoint()
+        transport, protocol = await create_netlink_endpoint(
+            pid=self._pid, groups=self._groups
+        )
         self._transport = transport
         self._protocol = protocol
         return self
@@ -101,14 +114,26 @@ class NetlinkClient:
     async def _recv_msg(self) -> tuple[NLMsg, int]:
         protocol = self._protocol
         assert protocol is not None
-        item = await protocol.get()
-        match item:
-            case Exception() as exc:
-                raise exc
-            case NLMsg() as msg, int(group):
-                return msg, group
-            case _:
-                assert False, "unreachable"
+        msg, group = await protocol.get()
+
+        if msg.msg_type == NLMSG_ERROR:
+            nl_errno = decode_nlmsg_error(msg.data)
+            if nl_errno != 0:
+                # A netlink acknowledgment is an NLMSG_ERROR packet with the error field set to 0.
+                raise NetlinkOSError(-nl_errno, os.strerror(-nl_errno))
+
+        return msg, group
+
+    async def recv_notification(self) -> tuple[NLMsg, int]:
+        if self._notifications:
+            msg, group = self._notifications.pop()
+        else:
+            msg, group = await self._recv_msg()
+
+        if group == 0:
+            raise NetlinkError(f"Not a netlink notification {msg=} {group=}")
+
+        return msg, group
 
     def _send_nlmsg(self, msg_type: int, flags: int, data: bytes) -> int:
         """
@@ -128,15 +153,20 @@ class NetlinkClient:
         self._transport.sendto(msg, (0, 0))
         return seqno
 
-    async def _recv(
+    async def _recv_response(
         self, msg_type: int, seqno: int | None = None
     ) -> AsyncIterator[tuple[NLMsg, int]]:
         interrupted = False
         while True:
             msg, group = await self._recv_msg()
 
+            if group != 0:
+                # This is a notification, put it in queue
+                self._notifications.append((msg, group))
+                continue
+
             if seqno is not None and msg.seq != seqno:
-                print(f"Invalid seqno, expected {seqno} but got {msg.seq}")
+                raise NetlinkError(f"Invalid seqno, expected {seqno} but got {msg.seq}")
 
             if bool(msg.flags & NLM_F_DUMP_INTR):
                 # Defer the interrupted error to yield as much data as possible.
@@ -147,12 +177,9 @@ class NetlinkClient:
                 yield msg, group
 
             elif msg.msg_type == NLMSG_ERROR:
-                nl_errno = decode_nlmsg_error(msg.data)
-                if nl_errno == 0:
-                    # A netlink acknowledgment is an NLMSG_ERROR packet with the error field set to 0.
-                    break
-
-                raise NetlinkOSError(-nl_errno, os.strerror(-nl_errno))
+                # A netlink acknowledgment is an NLMSG_ERROR packet with the error field set to 0.
+                # Here we rely on the fact that self._recv_msg already handled non-zero errors.
+                break
 
             elif msg.msg_type == NLMSG_DONE:
                 break
@@ -169,7 +196,7 @@ class NetlinkClient:
 
     async def _send_request(self, request: NetlinkGetRequest) -> AsyncIterator[NLMsg]:
         seqno = self._send_nlmsg(request.msg_type, request.flags, request.data)
-        async for msg, group in self._recv(request.response_type, seqno):
+        async for msg, group in self._recv_response(request.response_type, seqno):
             assert group == 0
             yield msg
 

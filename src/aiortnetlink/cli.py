@@ -65,19 +65,22 @@ async def run() -> None:
     rule_show_ip_version_group.add_argument("-4", "--ipv4", action="store_true")
     rule_show_ip_version_group.add_argument("-6", "--ipv6", action="store_true")
 
+    # watch
+    subparsers.add_parser("watch", aliases=["w"])
+
     args = parser.parse_args()
 
-    async with NetlinkClient() as nl:
-        match args:
-            case argparse.Namespace(object="link" | "l", command="show" | "s", DEV=dev):
-                ifi_index: int = 0
-                ifi_name: str | None = None
-                if dev is not None:
-                    try:
-                        ifi_index = int(dev)
-                    except ValueError:
-                        ifi_name = dev
+    match args:
+        case argparse.Namespace(object="link" | "l", command="show" | "s", DEV=dev):
+            ifi_index: int = 0
+            ifi_name: str | None = None
+            if dev is not None:
+                try:
+                    ifi_index = int(dev)
+                except ValueError:
+                    ifi_name = dev
 
+            async with NetlinkClient() as nl:
                 if ifi_index != 0:
                     link = await nl.get_link(ifi_index=ifi_index)
                     if link:
@@ -94,44 +97,45 @@ async def run() -> None:
                         sys.exit(1)
                 else:
                     links = [link async for link in nl.get_links()]
-                for link in links:
-                    print(f"{link.index}: {link.name}")
 
-            case argparse.Namespace(
-                object="address" | "addr" | "a", command="show" | "s"
-            ):
-                from collections import defaultdict
+            for link in links:
+                print(f"{link.index}: {link.name}")
 
-                addrs_by_if_index = defaultdict(list)
+        case argparse.Namespace(object="address" | "addr" | "a", command="show" | "s"):
+            from collections import defaultdict
+
+            addrs_by_if_index = defaultdict(list)
+            async with NetlinkClient() as nl:
                 async for addr in nl.get_addrs():
                     addrs_by_if_index[addr.if_index].append(addr)
 
                 link_by_if_index = {link.index: link async for link in nl.get_links()}
 
-                for if_index in sorted(addrs_by_if_index):
-                    addrs = addrs_by_if_index[if_index]
-                    link = link_by_if_index[if_index]
-                    print(f"{if_index}: {link.name}")
-                    for addr in addrs:
-                        print(
-                            f"    {'inet' if addr.ip_version == 4 else 'inet6'} {addr.interface}"
-                        )
+            for if_index in sorted(addrs_by_if_index):
+                addrs = addrs_by_if_index[if_index]
+                link = link_by_if_index[if_index]
+                print(f"{if_index}: {link.name}")
+                for addr in addrs:
+                    print(
+                        f"    {'inet' if addr.ip_version == 4 else 'inet6'} {addr.interface}"
+                    )
 
-            case argparse.Namespace(
-                object="route" | "ro" | "r", command="show" | "s", table=table
-            ):
-                if not args.numeric:
-                    table_id_to_name = parse_rt_tables()
-                else:
-                    table_id_to_name = {}
+        case argparse.Namespace(
+            object="route" | "ro" | "r", command="show" | "s", table=table
+        ):
+            if not args.numeric:
+                table_id_to_name = parse_rt_tables()
+            else:
+                table_id_to_name = {}
 
-                if args.ipv4:
-                    ip_versions: tuple[int, ...] = (4,)
-                elif args.ipv6:
-                    ip_versions = (6,)
-                else:
-                    ip_versions = (4, 6)
+            if args.ipv4:
+                ip_versions: tuple[int, ...] = (4,)
+            elif args.ipv6:
+                ip_versions = (6,)
+            else:
+                ip_versions = (4, 6)
 
+            async with NetlinkClient() as nl:
                 async for route in nl.get_routes():
                     if table and table != route.table:
                         continue
@@ -139,14 +143,15 @@ async def run() -> None:
                         continue
                     print(f"{table_id_to_name.get(route.table, route.table)}: {route=}")
 
-            case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
-                if args.ipv4:
-                    ip_versions = (4,)
-                elif args.ipv6:
-                    ip_versions = (6,)
-                else:
-                    ip_versions = (4, 6)
+        case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
+            if args.ipv4:
+                ip_versions = (4,)
+            elif args.ipv6:
+                ip_versions = (6,)
+            else:
+                ip_versions = (4, 6)
 
+            async with NetlinkClient() as nl:
                 async for rule in nl.get_rules():
                     if rule.family > 127:
                         # Values up to 127 are reserved for real address
@@ -156,5 +161,13 @@ async def run() -> None:
                         continue
                     print(f"{rule=}")
 
-            case _:
-                assert False, ""
+        case argparse.Namespace(object="watch" | "w"):
+            from aiortnetlink.rtm import RTNLGRP_LINK
+
+            async with NetlinkClient(groups={RTNLGRP_LINK}) as nl:
+                while item := await nl.recv_notification():
+                    msg, group = item
+                    print(f"{msg=} {group=}")
+
+        case _:
+            assert False, ""

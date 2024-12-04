@@ -347,25 +347,31 @@ def _parse_nlattrs(data: memoryview) -> Iterator[NLAttr]:
         attr_len, attr_type = struct.unpack("HH", data[pos : pos + 4])
         yield NLAttr(attr_type, data[pos + 4 : pos + attr_len])
 
-        # nlattrs are 4 byte ligend
+        # nlattrs are 4 byte aligned
         attr_len_aligned = attr_len + ((4 - (attr_len % 4)) % 4)
         pos += attr_len_aligned
 
 
-def _netlink_socket() -> socket.socket:
+def _netlink_socket(pid: int = 0, groups: int = 0) -> socket.socket:
     sock = socket.socket(
         type=socket.SOCK_DGRAM, family=socket.AF_NETLINK, proto=NETLINK_ROUTE
     )
     sock.setsockopt(SOL_NETLINK, NETLINK_EXT_ACK, 1)
     # See https://docs.kernel.org/userspace-api/netlink/intro.html#strict-checking
     sock.setsockopt(SOL_NETLINK, NETLINK_GET_STRICT_CHK, 1)
+
+    if groups != 0:
+        # Bind to indicate we are interested in notifications
+        sock.bind((pid, groups))
     return sock
 
 
-async def create_netlink_endpoint() -> tuple[DatagramTransport, NetlinkProtocol]:
-    sock = _netlink_socket()
+async def create_netlink_endpoint(
+    pid: int = 0, groups: int = 0
+) -> tuple[DatagramTransport, NetlinkProtocol]:
+    sock = _netlink_socket(pid, groups)
     return await asyncio.get_running_loop().create_datagram_endpoint(
-        lambda: NetlinkProtocol(), sock=sock
+        lambda: NetlinkProtocol(pid, groups), sock=sock
     )
 
 

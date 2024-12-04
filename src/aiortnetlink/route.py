@@ -2,15 +2,12 @@ import os
 import socket
 import struct
 from dataclasses import dataclass
-from typing import Final, Literal, NamedTuple
+from typing import Literal, NamedTuple
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
+from aiortnetlink.rtm import RTM_GETROUTE, RTM_NEWROUTE
 
 __all__ = ["RTMsg", "get_route_request", "Route", "parse_rt_tables"]
-
-RTM_NEWROUTE: Final = 24
-RTM_DELROUTE: Final = 25
-RTM_GETROUTE: Final = 26
 
 _RTMSG_FMT = b"BBBBBBBBI"
 _RTMSG_SIZE = struct.calcsize(_RTMSG_FMT)
