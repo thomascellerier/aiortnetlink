@@ -116,6 +116,10 @@ class Route:
             flags=flags,
         )
 
+    @classmethod
+    def rtm_request_get(cls) -> NetlinkGetRequest:
+        return get_route_request()
+
 
 def parse_rt_tables(
     rt_tables_path: str | os.PathLike[str] = "/etc/iproute2/rt_tables",

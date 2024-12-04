@@ -111,6 +111,8 @@ async def run() -> None:
             ):
                 if not args.numeric:
                     table_id_to_name = parse_rt_tables()
+                else:
+                    table_id_to_name = {}
 
                 if args.ipv4:
                     ip_versions: tuple[int, ...] = (4,)

@@ -1,13 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import os
-from types import TracebackType
-from typing import AsyncIterator, Self
+from typing import TYPE_CHECKING
 
-from aiortnetlink.address import IFAddr, get_addr_request
-from aiortnetlink.link import (
-    IFLink,
-    get_link_request,
-)
 from aiortnetlink.netlink import (
     NLM_F_DUMP_INTR,
     NLM_F_MULTI,
@@ -24,9 +20,51 @@ from aiortnetlink.netlink import (
     encode_nlmsg,
 )
 
+if TYPE_CHECKING:
+    from types import TracebackType
+    from typing import TYPE_CHECKING, AsyncIterator, Callable, Self
+
+    from aiortnetlink.address import IFAddr
+
+    # NOTE: These modules should only be imported at type checking time!
+    # We want the actual import to happen lazily to keep the module fast when
+    # using only a subset of the functionality.
+    from aiortnetlink.link import IFLink
+    from aiortnetlink.route import Route
+
+
 __all__ = ["NetlinkClient"]
 
-from aiortnetlink.route import Route, get_route_request
+
+class _LazyType[T]:
+    def __init__(self, import_type: Callable[[], type[T]]) -> None:
+        self._type: type[T] | None = None
+        self._import_type = import_type
+
+    def __call__(self) -> type[T]:
+        if (type_ := self._type) is None:
+            type_ = self._import_type()
+            self._type = type_
+
+        return type_
+
+
+def _iflink_type() -> type[IFLink]:
+    from aiortnetlink.link import IFLink
+
+    return IFLink
+
+
+def _ifaddr_type() -> type[IFAddr]:
+    from aiortnetlink.address import IFAddr
+
+    return IFAddr
+
+
+def _route_type() -> type[Route]:
+    from aiortnetlink.route import Route
+
+    return Route
 
 
 class NetlinkClient:
@@ -35,6 +73,11 @@ class NetlinkClient:
         self._protocol: NetlinkProtocol | None = None
         self._seqno = 0
         self._recvbuf_actual_size: int | None = None
+
+        # Use lazy loaders to keep start up times fast when using only a subset of the functionality
+        self._iflink_type = _LazyType(_iflink_type)
+        self._ifaddr_type = _LazyType(_ifaddr_type)
+        self._route_type = _LazyType(_route_type)
 
     async def __aenter__(self) -> Self:
         transport, protocol = await create_netlink_endpoint()
@@ -126,9 +169,10 @@ class NetlinkClient:
     async def get_links(
         self, ifi_index: int = 0, ifi_name: str | None = None
     ) -> AsyncIterator[IFLink]:
-        request = get_link_request(ifi_index=ifi_index, ifi_name=ifi_name)
+        iflink_type = self._iflink_type()
+        request = iflink_type.rtm_request_get(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
-            yield IFLink.from_nlmsg(msg)
+            yield iflink_type.from_nlmsg(msg)
 
     async def get_link(
         self, ifi_index: int = 0, ifi_name: str | None = None
@@ -149,11 +193,13 @@ class NetlinkClient:
     async def get_addrs(
         self, ifi_index: int = 0, ifi_name: str | None = None
     ) -> AsyncIterator[IFAddr]:
-        request = get_addr_request(ifi_index=ifi_index, ifi_name=ifi_name)
+        ifaddr_type = self._ifaddr_type()
+        request = ifaddr_type.rtm_request_get(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
-            yield IFAddr.from_nlmsg(msg)
+            yield ifaddr_type.from_nlmsg(msg)
 
     async def get_routes(self) -> AsyncIterator[Route]:
-        request = get_route_request()
+        route_type = self._route_type()
+        request = route_type.rtm_request_get()
         async for msg in self._send_request(request):
-            yield Route.from_nlmsg(msg)
+            yield route_type.from_nlmsg(msg)

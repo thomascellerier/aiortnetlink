@@ -88,6 +88,12 @@ class IFLink:
             change=ifi_change,
         )
 
+    @classmethod
+    def rtm_request_get(
+        cls, ifi_index: int = 0, ifi_name: str | None = None
+    ) -> NetlinkGetRequest:
+        return get_link_request(ifi_index, ifi_name)
+
 
 def get_link_request(
     ifi_index: int = 0, ifi_name: str | None = None
