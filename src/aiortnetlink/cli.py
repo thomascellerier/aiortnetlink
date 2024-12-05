@@ -3,7 +3,7 @@ import sys
 
 from aiortnetlink import NetlinkClient
 
-__all__ = ["run"]
+__all__ = ["run", "main"]
 
 
 async def run() -> None:
@@ -229,3 +229,13 @@ async def run() -> None:
 
         case _:
             assert False, ""
+
+
+def main() -> None:
+    import asyncio
+
+    try:
+        asyncio.run(run())
+    except KeyboardInterrupt:
+        print("Interrupted by user.", file=sys.stderr)
+        sys.exit(1)

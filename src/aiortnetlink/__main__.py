@@ -1,15 +1,3 @@
-import asyncio
-import sys
+from aiortnetlink.cli import main
 
-from aiortnetlink import cli
-
-
-async def main() -> None:
-    await cli.run()
-
-
-try:
-    asyncio.run(main())
-except KeyboardInterrupt:
-    print("Interrupted by user.", file=sys.stderr)
-    sys.exit(1)
+main()

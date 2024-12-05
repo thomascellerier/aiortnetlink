@@ -25,6 +25,11 @@ async with NetlinkClient() as nl:
         print(f"{link.index}: {link.name}")
 ```
 
+The module ships with a CLI, for example if running from the repository root:
+```
+uv run --directory src python -m aiortnetlink addr show
+```
+
 ## Supported features
 
 ### Links
