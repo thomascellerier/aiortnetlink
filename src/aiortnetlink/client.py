@@ -5,6 +5,13 @@ import collections
 import os
 from typing import TYPE_CHECKING, Iterable
 
+from aiortnetlink.lazy import (
+    decode_notification_fn,
+    ifaddr_type,
+    iflink_type,
+    route_type,
+    rule_type,
+)
 from aiortnetlink.netlink import (
     NLM_F_DUMP_INTR,
     NLM_F_MULTI,
@@ -23,55 +30,19 @@ from aiortnetlink.netlink import (
 
 if TYPE_CHECKING:
     from types import TracebackType
-    from typing import TYPE_CHECKING, AsyncIterator, Callable, Self
+    from typing import TYPE_CHECKING, AsyncIterator, Self
 
     # NOTE: These modules should only be imported at type checking time!
     # We want the actual import to happen lazily to keep the module fast when
     # using only a subset of the functionality.
     from aiortnetlink.address import IFAddr
     from aiortnetlink.link import IFLink
+    from aiortnetlink.notification import NetlinkNotification
     from aiortnetlink.route import Route
     from aiortnetlink.rule import Rule
 
 
 __all__ = ["NetlinkClient"]
-
-
-class _LazyType[T]:
-    def __init__(self, import_type: Callable[[], type[T]]) -> None:
-        self._type: type[T] | None = None
-        self._import_type = import_type
-
-    def __call__(self) -> type[T]:
-        if (type_ := self._type) is None:
-            type_ = self._import_type()
-            self._type = type_
-
-        return type_
-
-
-def _iflink_type() -> type[IFLink]:
-    from aiortnetlink.link import IFLink
-
-    return IFLink
-
-
-def _ifaddr_type() -> type[IFAddr]:
-    from aiortnetlink.address import IFAddr
-
-    return IFAddr
-
-
-def _route_type() -> type[Route]:
-    from aiortnetlink.route import Route
-
-    return Route
-
-
-def _rule_type() -> type[Rule]:
-    from aiortnetlink.rule import Rule
-
-    return Rule
 
 
 class NetlinkClient:
@@ -87,12 +58,6 @@ class NetlinkClient:
         for group in groups:
             group_mask |= 1 << (group - 1)
         self._groups = group_mask
-
-        # Use lazy loaders to keep start up times fast when using only a subset of the functionality
-        self._iflink_type = _LazyType(_iflink_type)
-        self._ifaddr_type = _LazyType(_ifaddr_type)
-        self._route_type = _LazyType(_route_type)
-        self._rule_type = _LazyType(_rule_type)
 
         # Buffered notifications, this allows receiving notifications while processing a response on the same socket.
         self._notifications: collections.deque[tuple[NLMsg, int]] = collections.deque()
@@ -124,7 +89,13 @@ class NetlinkClient:
 
         return msg, group
 
-    async def recv_notification(self) -> tuple[NLMsg, int]:
+    async def _recv_notification(self) -> tuple[NLMsg, int]:
+        """
+        Receive netlink asynchronous notification message.
+
+        Pop first for the internal notifications queue, notifications might have been added there while processing
+        another netlink request using the same netlink socket.
+        """
         if self._notifications:
             msg, group = self._notifications.pop()
         else:
@@ -134,6 +105,11 @@ class NetlinkClient:
             raise NetlinkError(f"Not a netlink notification {msg=} {group=}")
 
         return msg, group
+
+    async def recv_notification(self) -> NetlinkNotification:
+        msg, group = await self._recv_notification()
+        decode_notification = decode_notification_fn()
+        return decode_notification(msg, group)
 
     def _send_nlmsg(self, msg_type: int, flags: int, data: bytes) -> int:
         """
@@ -203,10 +179,10 @@ class NetlinkClient:
     async def get_links(
         self, ifi_index: int = 0, ifi_name: str | None = None
     ) -> AsyncIterator[IFLink]:
-        iflink_type = self._iflink_type()
-        request = iflink_type.rtm_get(ifi_index=ifi_index, ifi_name=ifi_name)
+        iflink_type_ = iflink_type()
+        request = iflink_type_.rtm_get(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
-            yield iflink_type.from_nlmsg(msg)
+            yield iflink_type_.from_nlmsg(msg)
 
     async def get_link(
         self, ifi_index: int = 0, ifi_name: str | None = None
@@ -227,19 +203,19 @@ class NetlinkClient:
     async def get_addrs(
         self, ifi_index: int = 0, ifi_name: str | None = None
     ) -> AsyncIterator[IFAddr]:
-        ifaddr_type = self._ifaddr_type()
-        request = ifaddr_type.rtm_get(ifi_index=ifi_index, ifi_name=ifi_name)
+        ifaddr_type_ = ifaddr_type()
+        request = ifaddr_type_.rtm_get(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
-            yield ifaddr_type.from_nlmsg(msg)
+            yield ifaddr_type_.from_nlmsg(msg)
 
     async def get_routes(self) -> AsyncIterator[Route]:
-        route_type = self._route_type()
-        request = route_type.rtm_get()
+        route_type_ = route_type()
+        request = route_type_.rtm_get()
         async for msg in self._send_request(request):
-            yield route_type.from_nlmsg(msg)
+            yield route_type_.from_nlmsg(msg)
 
     async def get_rules(self) -> AsyncIterator[Rule]:
-        rule_type = self._rule_type()
-        request = rule_type.rtm_get()
+        rule_type_ = rule_type()
+        request = rule_type_.rtm_get()
         async for msg in self._send_request(request):
-            yield rule_type.from_nlmsg(msg)
+            yield rule_type_.from_nlmsg(msg)

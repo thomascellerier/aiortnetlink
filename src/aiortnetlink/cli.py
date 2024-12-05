@@ -162,12 +162,16 @@ async def run() -> None:
                     print(f"{rule=}")
 
         case argparse.Namespace(object="watch" | "w"):
-            from aiortnetlink.rtm import RTNLGRP_LINK
+            from aiortnetlink import rtm
 
-            async with NetlinkClient(groups={RTNLGRP_LINK}) as nl:
-                while item := await nl.recv_notification():
-                    msg, group = item
-                    print(f"{msg=} {group=}")
+            groups = {
+                rtm.RTNLGRP_LINK,
+                rtm.RTNLGRP_IPV4_IFADDR,
+                rtm.RTNLGRP_IPV6_IFADDR,
+            }
+            async with NetlinkClient(groups=groups) as nl:
+                while notification := await nl.recv_notification():
+                    print(f"{notification=}")
 
         case _:
             assert False, ""

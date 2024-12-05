@@ -38,7 +38,10 @@ async with NetlinkClient() as nl:
 - `get_routes`: List all routes.
 
 ### Rules
-- TODO
+- `get_rules`: List all rules.
+
+### Notifications
+- `recv_notification`: Receive netlink notification. Notification subscription is done by passing the revelant rtnetlink groups to the netlink client.
 
 ## Development
 
