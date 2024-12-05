@@ -64,7 +64,15 @@ async def run() -> None:
     rule_show_ip_version_group.add_argument("-6", "--ipv6", action="store_true")
 
     # watch
-    subparsers.add_parser("watch", aliases=["w"])
+    watch_parser = subparsers.add_parser("watch", aliases=["w"])
+    watch_parser.add_argument("-4", "--ipv4", action="store_true")
+    watch_parser.add_argument("-6", "--ipv6", action="store_true")
+    watch_parser.add_argument("-l", "--link", action="store_true", help="Watch links")
+    watch_parser.add_argument(
+        "-a", "--address", action="store_true", help="Watch addresses"
+    )
+    watch_parser.add_argument("-r", "--route", action="store_true", help="Watch routes")
+    watch_parser.add_argument("--rule", action="store_true", help="Watch rules")
 
     args = parser.parse_args()
 
@@ -164,11 +172,57 @@ async def run() -> None:
         case argparse.Namespace(object="watch" | "w"):
             from aiortnetlink import rtm
 
-            groups = {
-                rtm.RTNLGRP_LINK,
-                rtm.RTNLGRP_IPV4_IFADDR,
-                rtm.RTNLGRP_IPV6_IFADDR,
-            }
+            groups: set[int] = set()
+
+            def link_groups() -> tuple[int, ...]:
+                return (rtm.RTNLGRP_LINK,)
+
+            if args.link:
+                link_groups()
+
+            def address_groups() -> tuple[int, ...]:
+                if args.ipv4:
+                    return (rtm.RTNLGRP_IPV4_IFADDR,)
+                elif args.ipv6:
+                    return (rtm.RTNLGRP_IPV6_IFADDR,)
+                else:
+                    return rtm.RTNLGRP_IPV4_IFADDR, rtm.RTNLGRP_IPV6_IFADDR
+
+            if args.address:
+                groups.update(address_groups())
+
+            def route_groups() -> tuple[int, ...]:
+                if args.ipv4:
+                    return (rtm.RTNLGRP_IPV4_ROUTE,)
+                elif args.ipv6:
+                    return (rtm.RTNLGRP_IPV6_ROUTE,)
+                else:
+                    return rtm.RTNLGRP_IPV4_ROUTE, rtm.RTNLGRP_IPV6_ROUTE
+
+            if args.route:
+                groups.update(route_groups())
+
+            def rule_groups() -> tuple[int, ...]:
+                if args.ipv4:
+                    return (rtm.RTNLGRP_IPV4_RULE,)
+                elif args.ipv6:
+                    return (rtm.RTNLGRP_IPV6_RULE,)
+                else:
+                    return rtm.RTNLGRP_IPV4_RULE, rtm.RTNLGRP_IPV6_RULE
+
+            # No groups specified, listen to everything supported!
+            if not groups:
+                groups.update(
+                    group
+                    for type_groups in (
+                        link_groups(),
+                        address_groups(),
+                        route_groups(),
+                        rule_groups(),
+                    )
+                    for group in type_groups
+                )
+
             async with NetlinkClient(groups=groups) as nl:
                 while notification := await nl.recv_notification():
                     print(f"{notification=}")

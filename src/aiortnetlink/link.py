@@ -55,6 +55,9 @@ class IFLink:
     if_type: int
     index: int
     flags: int
+    # For a new link the change mask will be set to 0xFFFF_FFFF.
+    # For a notification the mask will be set to what actually changed, e.g. 0x1 for operstate changed.
+    # For a request the change mask should be set to 0x0.
     change: int
     name: str
 

@@ -4,18 +4,25 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from aiortnetlink import rtm
-from aiortnetlink.lazy import ifaddr_type, iflink_type
+from aiortnetlink.lazy import ifaddr_type, iflink_type, route_type, rule_type
 
 if TYPE_CHECKING:
     from aiortnetlink.address import IFAddr
     from aiortnetlink.link import IFLink
     from aiortnetlink.netlink import NLMsg
+    from aiortnetlink.route import Route
+    from aiortnetlink.rule import Rule
+
 
 __all__ = [
     "NetlinkNotification",
     "UnhandledNetlinkNotification",
     "NewLinkNotification",
     "DelLinkNotification",
+    "NewAddrNotification",
+    "DelAddrNotification",
+    "NewRouteNotification",
+    "DelRouteNotification",
     "decode_notification",
 ]
 
@@ -51,12 +58,36 @@ class DelAddrNotification:
     link: IFAddr
 
 
+@dataclass(slots=True)
+class NewRouteNotification:
+    link: Route
+
+
+@dataclass(slots=True)
+class DelRouteNotification:
+    link: Route
+
+
+@dataclass(slots=True)
+class NewRuleNotification:
+    link: Rule
+
+
+@dataclass(slots=True)
+class DelRuleNotification:
+    link: Rule
+
+
 NetlinkNotification = (
     UnhandledNetlinkNotification
     | NewLinkNotification
     | DelLinkNotification
     | NewAddrNotification
     | DelAddrNotification
+    | NewRouteNotification
+    | DelRouteNotification
+    | NewRuleNotification
+    | DelRuleNotification
 )
 
 
@@ -77,5 +108,17 @@ def decode_notification(msg: NLMsg, group: int) -> NetlinkNotification:
         case rtm.RTM_DELADDR:
             assert group_value in (rtm.RTNLGRP_IPV4_IFADDR, rtm.RTNLGRP_IPV6_IFADDR)
             return DelAddrNotification(ifaddr_type().from_nlmsg(msg))
+        case rtm.RTM_NEWROUTE:
+            assert group_value in (rtm.RTNLGRP_IPV4_ROUTE, rtm.RTNLGRP_IPV6_ROUTE)
+            return NewRouteNotification(route_type().from_nlmsg(msg))
+        case rtm.RTM_DELROUTE:
+            assert group_value in (rtm.RTNLGRP_IPV4_ROUTE, rtm.RTNLGRP_IPV6_ROUTE)
+            return DelRouteNotification(route_type().from_nlmsg(msg))
+        case rtm.RTM_NEWRULE:
+            assert group_value in (rtm.RTNLGRP_IPV4_RULE, rtm.RTNLGRP_IPV6_RULE)
+            return NewRuleNotification(rule_type().from_nlmsg(msg))
+        case rtm.RTM_DELRULE:
+            assert group_value in (rtm.RTNLGRP_IPV4_RULE, rtm.RTNLGRP_IPV6_RULE)
+            return DelRuleNotification(rule_type().from_nlmsg(msg))
         case _:
             return UnhandledNetlinkNotification(msg, group)
