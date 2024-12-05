@@ -1,3 +1,7 @@
+"""
+See https://docs.kernel.org/networking/netlink_spec/rt_addr.html
+"""
+
 import struct
 from dataclasses import dataclass
 from ipaddress import (

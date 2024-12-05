@@ -1,3 +1,7 @@
+"""
+See https://docs.kernel.org/networking/netlink_spec/rt_link.html
+"""
+
 import struct
 from dataclasses import dataclass
 from typing import Final

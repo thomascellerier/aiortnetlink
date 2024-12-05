@@ -1,3 +1,7 @@
+"""
+https://docs.kernel.org/networking/netlink_spec/rt_rule.html
+"""
+
 import socket
 from dataclasses import dataclass
 from typing import Final, Literal

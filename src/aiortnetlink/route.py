@@ -1,8 +1,14 @@
+"""
+See https://docs.kernel.org/networking/netlink_spec/rt_route.html
+"""
+
 import os
 import socket
 import struct
 from dataclasses import dataclass
-from typing import Literal, NamedTuple
+from enum import IntEnum
+from ipaddress import IPv4Address, IPv6Address
+from typing import Final, Literal, NamedTuple
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
 from aiortnetlink.rtm import RTM_GETROUTE, RTM_NEWROUTE
@@ -11,6 +17,40 @@ __all__ = ["RTMsg", "get_route_request", "Route", "parse_rt_tables"]
 
 _RTMSG_FMT = b"BBBBBBBBI"
 _RTMSG_SIZE = struct.calcsize(_RTMSG_FMT)
+
+
+class RTAType(IntEnum):
+    RTA_UNSPEC: Final = 0
+    RTA_DST: Final = 1
+    RTA_SRC: Final = 2
+    RTA_IIF: Final = 3
+    RTA_OIF: Final = 4
+    RTA_GATEWAY: Final = 5
+    RTA_PRIORITY: Final = 6
+    RTA_PREFSRC: Final = 7
+    RTA_METRICS: Final = 8
+    RTA_MULTIPATH: Final = 9
+    RTA_PROTOINFO: Final = 10  # no longer used
+    RTA_FLOW: Final = 11
+    RTA_CACHEINFO: Final = 12
+    RTA_SESSION: Final = 13  # no longer used
+    RTA_MP_ALGO: Final = 14  # no longer used
+    RTA_TABLE: Final = 15
+    RTA_MARK: Final = 16
+    RTA_MFC_STATS: Final = 17
+    RTA_VIA: Final = 18
+    RTA_NEWDST: Final = 19
+    RTA_PREF: Final = 20
+    RTA_ENCAP_TYPE: Final = 21
+    RTA_ENCAP: Final = 22
+    RTA_EXPIRES: Final = 23
+    RTA_PAD: Final = 24
+    RTA_UID: Final = 25
+    RTA_TTL_PROPAGATE: Final = 26
+    RTA_IP_PROTO: Final = 27
+    RTA_SPORT: Final = 28
+    RTA_DPORT: Final = 29
+    RTA_NH_ID: Final = 30
 
 
 class RTMsg(NamedTuple):
@@ -66,6 +106,13 @@ class Route:
     scope: int
     rtm_type: int
     flags: int
+    priority: int | None = None
+    gateway: IPv4Address | IPv6Address | None = None
+    dst: IPv4Address | IPv6Address | None = None
+    prefsrc: IPv4Address | IPv6Address | None = None
+    iif: int | None = None
+    oif: int | None = None
+    pref: int | None = None
 
     @property
     def ip_version(self) -> Literal[4, 6]:
@@ -82,20 +129,55 @@ class Route:
         data = memoryview(msg.data)
         rtm, rtm_size = RTMsg.decode(data)
 
+        # If RTA_TABLE is set, rtm.table is ignored
+        table = rtm.table
+        iif: int | None = None
+        oif: int | None = None
+        dst: IPv4Address | IPv6Address | None = None
+        gateway: IPv4Address | IPv6Address | None = None
+        prefsrc: IPv4Address | IPv6Address | None = None
+        priority: int | None = None
+        pref: int | None = None
+
         for nlattr in msg.attrs(rtm_size):
-            # TODO: Parse nlattrs
-            pass
+            match nlattr.attr_type:
+                case RTAType.RTA_TABLE:
+                    table = nlattr.as_int()
+                case RTAType.RTA_OIF:
+                    oif = nlattr.as_int()
+                case RTAType.RTA_IIF:
+                    iif = nlattr.as_int()
+                case RTAType.RTA_DST:
+                    dst = nlattr.as_ipaddress()
+                case RTAType.RTA_GATEWAY:
+                    gateway = nlattr.as_ipaddress()
+                case RTAType.RTA_PRIORITY:
+                    priority = nlattr.as_int()
+                case RTAType.RTA_PREF:
+                    pref = nlattr.as_int()
+                case RTAType.RTA_PREFSRC:
+                    prefsrc = nlattr.as_ipaddress()
+                case _:
+                    # TODO: Handle remaining attributes, e.g. RTA_UNSPEC and RTA_CACHEINFO
+                    pass
 
         return Route(
             family=rtm.family,
             dst_len=rtm.dst_len,
             src_len=rtm.src_len,
             tos=rtm.tos,
-            table=rtm.table,
+            table=table,
             protocol=rtm.protocol,
             scope=rtm.scope,
             rtm_type=rtm.rtm_type,
             flags=rtm.flags,
+            iif=iif,
+            oif=oif,
+            dst=dst,
+            gateway=gateway,
+            priority=priority,
+            pref=pref,
+            prefsrc=prefsrc,
         )
 
     @classmethod

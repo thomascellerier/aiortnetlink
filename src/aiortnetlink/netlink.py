@@ -2,16 +2,21 @@
 See:
 - https://docs.kernel.org/userspace-api/netlink/intro.html
 - https://wiki.linuxfoundation.org/networking/generic_netlink_howto
+- https://docs.kernel.org/networking/netlink_spec/
 """
 
 import asyncio
+import ipaddress
 import socket
 import struct
+import sys
 from asyncio import DatagramTransport
+from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Final, Iterator, NamedTuple
 
 __all__ = [
     "NetlinkOSError",
+    "NetlinkValueError",
     "NLM_F_DUMP",
     "NLM_F_REQUEST",
     "NetlinkDumpInterruptedError",
@@ -23,10 +28,12 @@ __all__ = [
     "NLM_F_MULTI",
     "NetlinkProtocol",
     "create_netlink_endpoint",
+    "decode_nlattr_int",
     "decode_nlattr_str",
     "NLMsg",
     "NLAttr",
     "encode_nlmsg",
+    "encode_nlattr_int",
     "encode_nlattr_str",
     "NetlinkGetRequest",
 ]
@@ -120,6 +127,12 @@ class NLAttr(NamedTuple):
     def as_string(self) -> str:
         return decode_nlattr_str(self.data)
 
+    def as_int(self) -> int:
+        return decode_nlattr_int(self.data)
+
+    def as_ipaddress(self) -> IPv4Address | IPv6Address:
+        return ipaddress.ip_address(self.data.tobytes())
+
 
 class NLMsg(NamedTuple):
     msg_len: int
@@ -181,6 +194,14 @@ def decode_nlattr_str(data: memoryview) -> str:
 
 def encode_nlattr_str(nla_type: int, value: str) -> bytes:
     return _nlattr(nla_type, value.encode("ascii") + b"\x00")
+
+
+def decode_nlattr_int(data: memoryview) -> int:
+    return int.from_bytes(data, sys.byteorder)
+
+
+def encode_nlattr_int(nla_type: int, value: int) -> bytes:
+    return _nlattr(nla_type, value.to_bytes(4, sys.byteorder))
 
 
 class NetlinkError(Exception):
