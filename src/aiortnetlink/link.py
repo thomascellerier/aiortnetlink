@@ -18,7 +18,7 @@ from aiortnetlink.netlink import (
 from aiortnetlink.rtfile import parse_rt_mapping
 from aiortnetlink.rtm import RTM_GETLINK, RTM_NEWLINK
 
-__all__ = ["IFLink", "IFLAType", "Flags", "ifinfomsg"]
+__all__ = ["IFLink", "IFLAType", "Flags", "ifinfomsg", "parse_rt_groups"]
 
 # See <linux/if_arp.h>
 ARPHRD_ETHER: Final = 1
@@ -217,8 +217,26 @@ class IFLink:
     ) -> NetlinkGetRequest:
         return get_link_request(ifi_index, ifi_name)
 
+    def friendly_footer_str(self) -> str:
+        link_type = {
+            ARPHRD_ETHER: "ether",
+            ARPHRD_LOOPBACK: "loopback",
+            ARPHRD_NONE: "none",
+        }.get(self.if_type, str(self.if_type))
+        parts = [f"link/{link_type}"]
+
+        if self.address is not None:
+            parts.append(self.address)
+
+        if self.broadcast is not None:
+            parts.extend(["brd", self.broadcast])
+
+        return "\n    " + " ".join(parts)
+
     def friendly_str(
-        self, group_id_to_name: Callable[[int], str | None] = lambda _: None
+        self,
+        group_id_to_name: Callable[[int], str | None] = lambda _: None,
+        show_mode: bool = True,
     ) -> str:
         flags = []
 
@@ -244,7 +262,8 @@ class IFLink:
         else:
             parts.extend(["state", "UNKNOWN"])
 
-        parts.extend(["mode", IFLinkMode(self.linkmode).name])
+        if show_mode:
+            parts.extend(["mode", IFLinkMode(self.linkmode).name])
 
         if self.group is not None:
             parts.extend(["group", group_id_to_name(self.group) or str(self.group)])
@@ -252,20 +271,7 @@ class IFLink:
         if self.txqlen is not None:
             parts.extend(["qlen", str(self.txqlen)])
 
-        link_type = {
-            ARPHRD_ETHER: "ether",
-            ARPHRD_LOOPBACK: "loopback",
-            ARPHRD_NONE: "none",
-        }.get(self.if_type, str(self.if_type))
-        footer_parts = [f"link/{link_type}"]
-
-        if self.address is not None:
-            footer_parts.append(self.address)
-
-        if self.broadcast is not None:
-            footer_parts.extend(["bdr", self.broadcast])
-
-        return " ".join(parts) + "\n    " + " ".join(footer_parts)
+        return " ".join(parts) + self.friendly_footer_str()
 
 
 def get_link_request(

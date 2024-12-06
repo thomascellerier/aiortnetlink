@@ -4,15 +4,15 @@ See https://docs.kernel.org/networking/netlink_spec/rt_addr.html
 
 import struct
 from dataclasses import dataclass
+from enum import IntEnum
 from ipaddress import (
     IPv4Address,
     IPv4Interface,
     IPv6Address,
     IPv6Interface,
-    ip_address,
     ip_interface,
 )
-from typing import Final, Literal
+from typing import Callable, Final, Literal, NamedTuple
 
 from aiortnetlink.link import IFLAType
 from aiortnetlink.netlink import (
@@ -27,14 +27,40 @@ from aiortnetlink.rtm import RTM_GETADDR, RTM_NEWADDR
 
 __all__ = ["ifaddrmsg", "get_addr_request", "IFAddr"]
 
-IFA_UNSPEC: Final = 0
-IFA_ADDRESS: Final = 1
-IFA_LOCAL: Final = 2
-IFA_LABEL: Final = 3
-IFA_BROADCAST: Final = 4
-IFA_ANYCAST: Final = 5
-IFA_CACHEINFO: Final = 6
-IFA_MULTICAST: Final = 7
+
+class IFA_Type(IntEnum):
+    UNSPEC: Final = 0
+    ADDRESS: Final = 1
+    LOCAL: Final = 2
+    LABEL: Final = 3
+    BROADCAST: Final = 4
+    ANYCAST: Final = 5
+    CACHEINFO: Final = 6
+    MULTICAST: Final = 7
+    FLAGS: Final = 8
+    RT_PRIORITY: Final = 9
+    TARGET_NETNSID: Final = 10
+    PROTO: Final = 11
+
+    @property
+    def attr_name(self) -> str:
+        return f"IFA_{self.name}"
+
+
+class IFA_Flags(IntEnum):
+    SECONDARY: Final = 0x01
+    NODAD: Final = 0x02
+    OPTIMISTIC: Final = 0x04
+    DADFAILED: Final = 0x08
+    HOMEADDRESS: Final = 0x10
+    DEPRECATED: Final = 0x20
+    TENTATIVE: Final = 0x40
+    PERMANENT: Final = 0x80
+    MANAGETEMPADDR: Final = 0x100
+    NOPREFIXROUTE: Final = 0x200
+    MCAUTOJOIN: Final = 0x400
+    STABLE_PRIVACY: Final = 0x800
+
 
 _IFADDRMSG_FMT = b"BBBBI"
 _IFADDRMSG_SIZE = struct.calcsize(_IFADDRMSG_FMT)
@@ -77,6 +103,29 @@ IPAddress = IPv4Address | IPv6Address
 IPInterface = IPv4Interface | IPv6Interface
 
 
+_UINT32_MAX = (2**32) - 1
+
+
+class IFACacheInfo(NamedTuple):
+    ifa_preferred: int
+    ifa_valid: int
+    cstamp: int
+    tstamp: int
+
+    @staticmethod
+    def decode(data: memoryview) -> "IFACacheInfo":
+        return IFACacheInfo(*struct.unpack("IIII", data))
+
+    def friendly_str(self) -> str:
+        parts = [
+            "valid_lft",
+            "forever" if self.ifa_valid == _UINT32_MAX else str(self.ifa_valid),
+            "preferred_lft",
+            "forever" if self.ifa_preferred == _UINT32_MAX else str(self.ifa_preferred),
+        ]
+        return " " * 8 + " ".join(parts)
+
+
 @dataclass(slots=True)
 class IFAddr:
     family: int
@@ -85,6 +134,9 @@ class IFAddr:
     flags: int
     if_index: int
     address: IPAddress
+    broadcast: IPAddress | None = None
+    label: str | None = None
+    cache_info: IFACacheInfo | None = None
 
     @property
     def interface(self) -> IPInterface:
@@ -101,24 +153,44 @@ class IFAddr:
             _IFADDRMSG_FMT, data[:_IFADDRMSG_SIZE]
         )
 
+        # If IFA_FLAGS is set, ifa_flags is ignored
+        flags = ifa_flags
         address: IPAddress | None = None
+        broadcast: IPAddress | None = None
+        label: str | None = None
+        cache_info: IFACacheInfo | None = None
 
         for nlattr in msg.attrs(_IFADDRMSG_SIZE):
-            if nlattr.attr_type == IFA_ADDRESS:
-                address = ip_address(nlattr.data.tobytes())
+            match nlattr.attr_type:
+                case IFA_Type.ADDRESS:
+                    address = nlattr.as_ipaddress()
+                case IFA_Type.BROADCAST:
+                    broadcast = nlattr.as_ipaddress()
+                case IFA_Type.LABEL:
+                    label = nlattr.as_string()
+                case IFA_Type.FLAGS:
+                    flags = nlattr.as_int()
+                case IFA_Type.CACHEINFO:
+                    cache_info = IFACacheInfo.decode(nlattr.data)
+                case _:
+                    # TODO: Handle remaining attribute types like IFA_LOCAL, IFA_UNSPEC
+                    pass
 
         if address is None:
             raise NetlinkValueError(
-                f"Invalid netlink address, missing {IFA_ADDRESS=} attribute"
+                f"Invalid netlink address, missing {IFA_Type.ADDRESS.attr_name} attribute"
             )
 
         return IFAddr(
             family=ifa_family,
             prefixlen=ifa_prefixlen,
             scope=ifa_scope,
-            flags=ifa_flags,
+            flags=flags,
             if_index=ifa_index,
             address=address,
+            broadcast=broadcast,
+            label=label,
+            cache_info=cache_info,
         )
 
     @classmethod
@@ -126,3 +198,29 @@ class IFAddr:
         cls, ifi_index: int = 0, ifi_name: str | None = None
     ) -> NetlinkGetRequest:
         return get_addr_request(ifi_index, ifi_name)
+
+    def friendly_str(
+        self, scope_id_to_name: Callable[[int], str | None] = lambda _: None
+    ) -> str:
+        parts = ["inet" if self.ip_version == 4 else "inet6", str(self.interface)]
+
+        if self.broadcast:
+            parts.extend(["brd", str(self.broadcast)])
+
+        parts.extend(["scope", scope_id_to_name(self.scope) or str(self.scope)])
+
+        flags = []
+        if not (self.flags & IFA_Flags.PERMANENT):
+            flags.append("dynamic")
+        for flag in IFA_Flags:
+            if self.flags & flag:
+                flags.append(flag.name.lower())
+        parts.extend(flags)
+
+        if self.label:
+            parts.append(self.label)
+
+        parts_str = " ".join(parts)
+        if self.cache_info:
+            parts_str += "\n" + self.cache_info.friendly_str()
+        return parts_str

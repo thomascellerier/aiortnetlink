@@ -5,8 +5,6 @@ from aiortnetlink import NetlinkClient
 
 __all__ = ["run", "main"]
 
-from aiortnetlink.link import parse_rt_groups
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("aiortnetlink")
@@ -39,6 +37,12 @@ def parse_args() -> argparse.Namespace:
 
     # addr show
     addr_show_parser = addr_subparsers.add_parser("show", aliases=["s"])
+    addr_show_parser.add_argument(
+        "-n",
+        "--numeric",
+        help="don't map id to name",
+        action="store_true",
+    )
     addr_show_parser.add_argument("DEV", default=None, nargs="?")
 
     # route
@@ -124,6 +128,8 @@ async def run(args: argparse.Namespace) -> None:
                     links = [link async for link in nl.get_links()]
 
             if not args.numeric:
+                from aiortnetlink.link import parse_rt_groups
+
                 group_id_to_name = parse_rt_groups()
             else:
                 group_id_to_name = {}
@@ -141,14 +147,19 @@ async def run(args: argparse.Namespace) -> None:
 
                 link_by_if_index = {link.index: link async for link in nl.get_links()}
 
-            for if_index in sorted(addrs_by_if_index):
+            if not args.numeric:
+                from aiortnetlink.route import parse_rt_scopes
+
+                scope_id_to_name = parse_rt_scopes()
+            else:
+                scope_id_to_name = {}
+
+            for if_index in sorted(link_by_if_index):
                 addrs = addrs_by_if_index[if_index]
                 link = link_by_if_index[if_index]
-                print(f"{if_index}: {link.name}")
+                print(link.friendly_str(show_mode=False))
                 for addr in addrs:
-                    print(
-                        f"    {'inet' if addr.ip_version == 4 else 'inet6'} {addr.interface}"
-                    )
+                    print(addr.friendly_str(scope_id_to_name=scope_id_to_name.get))
 
         case argparse.Namespace(
             object="route" | "ro" | "r", command="show" | "s", table=table
