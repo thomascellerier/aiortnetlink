@@ -27,7 +27,7 @@ async with NetlinkClient() as nl:
 
 The module ships with a CLI, for example if running from the repository root:
 ```
-uv run --directory src python -m aiortnetlink addr show
+uv run aiortnetlink addr show
 ```
 
 ## Supported features
