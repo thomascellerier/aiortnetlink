@@ -6,7 +6,7 @@ See https://docs.kernel.org/userspace-api/netlink/intro.html
 
 ## Getting started
 
-Install:
+Install from [PyPI](https://pypi.org/project/aiortnetlink/):
 ```
 pip install aiortnetlink
 ```
