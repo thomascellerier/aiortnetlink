@@ -8,6 +8,9 @@ __all__ = ["run", "main"]
 
 async def run() -> None:
     parser = argparse.ArgumentParser("aiortnetlink")
+    parser.add_argument(
+        "--rcvbuf-size", type=int, help="Set netlink socket receive buffer size"
+    )
     subparsers = parser.add_subparsers(title="object", dest="object", required=True)
 
     # link
@@ -86,7 +89,7 @@ async def run() -> None:
                 except ValueError:
                     ifi_name = dev
 
-            async with NetlinkClient() as nl:
+            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
                 if ifi_index != 0:
                     link = await nl.get_link(ifi_index=ifi_index)
                     if link:
@@ -111,7 +114,7 @@ async def run() -> None:
             from collections import defaultdict
 
             addrs_by_if_index = defaultdict(list)
-            async with NetlinkClient() as nl:
+            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
                 async for addr in nl.get_addrs():
                     addrs_by_if_index[addr.if_index].append(addr)
 
@@ -143,7 +146,7 @@ async def run() -> None:
             else:
                 ip_versions = (4, 6)
 
-            async with NetlinkClient() as nl:
+            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
                 async for route in nl.get_routes():
                     if table and table != route.table:
                         continue
@@ -159,7 +162,7 @@ async def run() -> None:
             else:
                 ip_versions = (4, 6)
 
-            async with NetlinkClient() as nl:
+            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
                 async for rule in nl.get_rules():
                     if rule.family > 127:
                         # Values up to 127 are reserved for real address

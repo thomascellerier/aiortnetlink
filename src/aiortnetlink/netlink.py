@@ -100,6 +100,9 @@ _NLA_SIZE: Final = struct.calcsize(_NLA_FMT)
 SOL_NETLINK: Final = 270
 NETLINK_EXT_ACK: Final = 11
 
+# See <uapi/asm-generic/socket.h>
+SO_RCVBUF_FORCE: Final = 33
+
 
 def _nlmsghdr(
     msg_len: int,
@@ -373,13 +376,39 @@ def _parse_nlattrs(data: memoryview) -> Iterator[NLAttr]:
         pos += attr_len_aligned
 
 
-def _netlink_socket(pid: int = 0, groups: int = 0) -> socket.socket:
+def _netlink_socket(
+    pid: int = 0, groups: int = 0, rcvbuf_size: int | None = None
+) -> socket.socket:
     sock = socket.socket(
         type=socket.SOCK_DGRAM, family=socket.AF_NETLINK, proto=NETLINK_ROUTE
     )
     sock.setsockopt(SOL_NETLINK, NETLINK_EXT_ACK, 1)
     # See https://docs.kernel.org/userspace-api/netlink/intro.html#strict-checking
     sock.setsockopt(SOL_NETLINK, NETLINK_GET_STRICT_CHK, 1)
+
+    if rcvbuf_size is not None:
+        if rcvbuf_size < 128:
+            # The minimum (doubled) value for this option is 256.
+            raise NetlinkValueError(
+                f"Netlink socket receive buffer size should be greater or equal to 128 but got {rcvbuf_size}"
+            )
+
+        # Sets or gets the maximum socket receive buffer in bytes.
+        # The kernel doubles this value (to allow space for bookkeeping overhead)
+        # when it is set using setsockopt(2), and this doubled value is returned by getsockopt(2).
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, rcvbuf_size)
+        actual_rcvbuf_size = sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
+        if actual_rcvbuf_size < rcvbuf_size * 2:
+            # Using this socket option, a privileged (CAP_NET_ADMIN)
+            # process can perform the same task as SO_RCVBUF, but the rmem_max limit can be overridden.
+            try:
+                sock.setsockopt(socket.SOL_SOCKET, SO_RCVBUF_FORCE, rcvbuf_size)
+            except PermissionError:
+                raise NetlinkError(
+                    f"Failed to set netlink socket receive buffer size to {rcvbuf_size}, "
+                    f"actual receive buffer size is {actual_rcvbuf_size} but expected {rcvbuf_size * 2} "
+                    "(value doubled by kernel).",
+                ) from None
 
     if groups != 0:
         # Bind to indicate we are interested in notifications
@@ -388,9 +417,11 @@ def _netlink_socket(pid: int = 0, groups: int = 0) -> socket.socket:
 
 
 async def create_netlink_endpoint(
-    pid: int = 0, groups: int = 0
+    pid: int = 0,
+    groups: int = 0,
+    rcvbuf_size: int | None = None,
 ) -> tuple[DatagramTransport, NetlinkProtocol]:
-    sock = _netlink_socket(pid, groups)
+    sock = _netlink_socket(pid, groups, rcvbuf_size)
     return await asyncio.get_running_loop().create_datagram_endpoint(
         lambda: NetlinkProtocol(pid, groups), sock=sock
     )
