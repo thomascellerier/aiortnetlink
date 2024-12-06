@@ -220,7 +220,7 @@ class IFAddr:
         if self.label:
             parts.append(self.label)
 
-        parts_str = " ".join(parts)
+        parts_str = " " * 4 + " ".join(parts)
         if self.cache_info:
             parts_str += "\n" + self.cache_info.friendly_str()
         return parts_str

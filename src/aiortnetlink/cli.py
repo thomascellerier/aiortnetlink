@@ -37,6 +37,8 @@ def parse_args() -> argparse.Namespace:
 
     # addr show
     addr_show_parser = addr_subparsers.add_parser("show", aliases=["s"])
+    addr_show_parser.add_argument("-4", "--ipv4", action="store_true")
+    addr_show_parser.add_argument("-6", "--ipv6", action="store_true")
     addr_show_parser.add_argument(
         "-n",
         "--numeric",
@@ -154,11 +156,20 @@ async def run(args: argparse.Namespace) -> None:
             else:
                 scope_id_to_name = {}
 
+            if args.ipv4:
+                ip_versions: tuple[int, ...] = (4,)
+            elif args.ipv6:
+                ip_versions = (6,)
+            else:
+                ip_versions = (4, 6)
+
             for if_index in sorted(link_by_if_index):
                 addrs = addrs_by_if_index[if_index]
                 link = link_by_if_index[if_index]
                 print(link.friendly_str(show_mode=False))
                 for addr in addrs:
+                    if addr.ip_version not in ip_versions:
+                        continue
                     print(addr.friendly_str(scope_id_to_name=scope_id_to_name.get))
 
         case argparse.Namespace(
