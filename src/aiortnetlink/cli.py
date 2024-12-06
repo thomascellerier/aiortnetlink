@@ -62,6 +62,12 @@ def parse_args() -> argparse.Namespace:
 
     # rule show
     rule_show_parser = rule_subparsers.add_parser("show", aliases=["s"])
+    rule_show_parser.add_argument(
+        "-n",
+        "--numeric",
+        help="don't map table id to table name",
+        action="store_true",
+    )
     rule_show_ip_version_group = rule_show_parser.add_mutually_exclusive_group()
     rule_show_ip_version_group.add_argument("-4", "--ipv4", action="store_true")
     rule_show_ip_version_group.add_argument("-6", "--ipv6", action="store_true")
@@ -169,7 +175,6 @@ async def run(args: argparse.Namespace) -> None:
                         continue
                     if route.ip_version not in ip_versions:
                         continue
-                    # print(f"{table_id_to_name.get(route.table, route.table)}: {route=}")
                     print(
                         route.friendly_str(
                             show_table=table is None,
@@ -181,6 +186,15 @@ async def run(args: argparse.Namespace) -> None:
                     )
 
         case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
+            if not args.numeric:
+                from aiortnetlink.route import (
+                    parse_rt_tables,
+                )
+
+                table_id_to_name = parse_rt_tables()
+            else:
+                table_id_to_name = {}
+
             if args.ipv4:
                 ip_versions = (4,)
             elif args.ipv6:
@@ -196,7 +210,11 @@ async def run(args: argparse.Namespace) -> None:
                         continue
                     if rule.ip_version not in ip_versions:
                         continue
-                    print(f"{rule=}")
+                    print(
+                        rule.friendly_str(
+                            table_id_to_name=table_id_to_name.get,
+                        )
+                    )
 
         case argparse.Namespace(object="watch" | "w"):
             from aiortnetlink import rtm
