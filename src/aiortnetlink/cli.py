@@ -5,8 +5,6 @@ from aiortnetlink import NetlinkClient
 
 __all__ = ["run", "main"]
 
-from aiortnetlink.route import parse_rt_protos, parse_rt_scopes
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("aiortnetlink")
@@ -137,7 +135,11 @@ async def run(args: argparse.Namespace) -> None:
             object="route" | "ro" | "r", command="show" | "s", table=table
         ):
             if not args.numeric:
-                from aiortnetlink.route import parse_rt_tables
+                from aiortnetlink.route import (
+                    parse_rt_protos,
+                    parse_rt_scopes,
+                    parse_rt_tables,
+                )
 
                 table_id_to_name = parse_rt_tables()
                 proto_id_to_name = parse_rt_protos()
