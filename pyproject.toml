@@ -1,10 +1,13 @@
 [project]
 name = "aiortnetlink"
-version = "0.1.13"
+version = "0.1.14"
 description = "Netlink client for asyncio"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[project.urls]
+source = "https://github.com/thomascellerier/aiortnetlink"
 
 [project.scripts]
 aiortnetlink = "aiortnetlink.cli:main"
