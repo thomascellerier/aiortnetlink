@@ -2,18 +2,26 @@
 See https://docs.kernel.org/networking/netlink_spec/rt_route.html
 """
 
+import ipaddress
 import os
 import socket
 import struct
 from dataclasses import dataclass
 from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
-from typing import Final, Literal, NamedTuple
+from typing import Callable, Final, Literal, NamedTuple
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
 from aiortnetlink.rtm import RTM_GETROUTE, RTM_NEWROUTE
 
-__all__ = ["RTMsg", "get_route_request", "Route", "parse_rt_tables"]
+__all__ = [
+    "RTMsg",
+    "get_route_request",
+    "Route",
+    "parse_rt_tables",
+    "parse_rt_protos",
+    "parse_rt_scopes",
+]
 
 _RTMSG_FMT = b"BBBBBBBBI"
 _RTMSG_SIZE = struct.calcsize(_RTMSG_FMT)
@@ -51,6 +59,28 @@ class RTAType(IntEnum):
     RTA_SPORT: Final = 28
     RTA_DPORT: Final = 29
     RTA_NH_ID: Final = 30
+
+
+class RTNType(IntEnum):
+    RTN_UNSPEC: Final = 0
+    RTN_UNICAST: Final = 1  # Gateway or direct route
+    RTN_LOCAL: Final = 2  # Accept locally
+    RTN_BROADCAST: Final = 3  # Accept locally as broadcast, send as broadcast
+    RTN_ANYCAST: Final = 4  # Accept locally as broadcast, but send as unicast
+    RTN_MULTICAST: Final = 5  # Multicast route
+    RTN_BLACKHOLE: Final = 6  # Drop
+    RTN_UNREACHABLE: Final = 7  # Destination is unreachable
+    RTN_PROHIBIT: Final = 8  # Administratively prohibited
+    RTN_THROW: Final = 9  # Not in this table
+    RTN_NAT: Final = 10  # Translate this address
+    RTN_XRESOLVE: Final = 11  # Use external resolver
+
+
+class ICMPv6RouterPref(IntEnum):
+    ICMPV6_ROUTER_PREF_LOW: Final = 0x3
+    ICMPV6_ROUTER_PREF_MEDIUM: Final = 0x0
+    ICMPV6_ROUTER_PREF_HIGH: Final = 0x1
+    ICMPV6_ROUTER_PREF_INVALID: Final = 0x2
 
 
 class RTMsg(NamedTuple):
@@ -184,39 +214,123 @@ class Route:
     def rtm_get(cls) -> NetlinkGetRequest:
         return get_route_request()
 
+    def friendly_str(
+        self,
+        show_table: bool = True,
+        table_id_to_name: Callable[[int], str | None] = lambda _: None,
+        proto_id_to_name: Callable[[int], str | None] = lambda _: None,
+        scope_id_to_name: Callable[[int], str | None] = lambda _: None,
+        link_index_to_name: Callable[[int], str | None] = lambda _: None,
+    ) -> str:
+        parts: list[str] = []
 
-def parse_rt_tables(
-    rt_tables_path: str | os.PathLike[str] = "/etc/iproute2/rt_tables",
-) -> dict[int, str]:
+        if self.rtm_type != RTNType.RTN_UNICAST:
+            rtm_type = RTNType(self.rtm_type).name.removeprefix("RTN_").lower()
+            parts.append(rtm_type)
+
+        if self.dst:
+            if self.dst_len == self.dst.max_prefixlen:
+                parts.append(str(self.dst))
+            else:
+                parts.append(str(ipaddress.ip_interface((self.dst, self.dst_len))))
+        else:
+            parts.append("default")
+
+        if self.gateway:
+            parts.extend(["via", str(self.gateway)])
+
+        if self.oif is not None:
+            oif = link_index_to_name(self.oif) or str(self.oif)
+            parts.extend(["dev", oif])
+
+        if self.protocol:
+            proto = proto_id_to_name(self.protocol) or str(self.protocol)
+            parts.extend(["proto", proto])
+
+        if self.scope:
+            scope = scope_id_to_name(self.scope) or str(self.scope)
+            parts.extend(["scope", scope])
+
+        if self.prefsrc:
+            parts.extend(["src", str(self.prefsrc)])
+
+        if self.priority is not None:
+            parts.extend(["metric", str(self.priority)])
+
+        if self.pref is not None:
+            parts.extend(
+                [
+                    "pref",
+                    ICMPv6RouterPref(self.pref)
+                    .name.removeprefix("ICMPV6_ROUTER_PREF_")
+                    .lower(),
+                ]
+            )
+
+        if show_table:
+            table = table_id_to_name(self.table) or str(self.table)
+            parts.extend(["table", table])
+
+        return " ".join(parts)
+
+
+def _parse_rt_mapping(path: str | os.PathLike[str]) -> dict[int, str]:
     """
-    Parse routing table id to routing table name mapping file.
+    Parse rt int to str mapping file.
     """
-    table_id_to_name = {}
-    with open(rt_tables_path, "rb") as f:
+    entry_id_to_name = {}
+    with open(path, "rb") as f:
         for lineno, line in enumerate(f, start=1):
             if line.startswith(b"#"):
                 continue
             match line.split():
-                case table_id_bytes, table_name_bytes:
+                case entry_id_bytes, entry_name_bytes:
                     try:
-                        table_id = int(table_id_bytes)
+                        entry_id = int(entry_id_bytes)
                     except ValueError:
                         raise ValueError(
-                            f"Invalid table id to name mapping at line {lineno} in {rt_tables_path}, "
-                            f"table id should be an integer but got {table_id_bytes!r}"
+                            f"Invalid entry id to name mapping at line {lineno} in {path}, "
+                            f"id should be an integer but got {entry_id_bytes!r}"
                         ) from None
                     try:
-                        table_name = table_name_bytes.decode("ascii")
+                        entry_name = entry_name_bytes.decode("ascii")
                     except ValueError:
                         raise ValueError(
-                            f"Invalid table id to name mapping at line {lineno} in {rt_tables_path}, "
-                            f"table name should be an ascii string but got {table_name_bytes!r}"
+                            f"Invalid table id to name mapping at line {lineno} in {path}, "
+                            f"table name should be an ascii string but got {entry_name_bytes!r}"
                         ) from None
-                    table_id_to_name[table_id] = table_name
+                    entry_id_to_name[entry_id] = entry_name
                 case _:
                     raise ValueError(
-                        f"Invalid table id to name mapping at line {lineno} in {rt_tables_path}, "
-                        "line should have two parts separated by whitespace, table id and table name, "
+                        f"Invalid table id to name mapping at line {lineno} in {path}, "
+                        "line should have two parts separated by whitespace, entry id and name, "
                         f"but got {line.rstrip()!r}"
                     )
-    return table_id_to_name
+    return entry_id_to_name
+
+
+def parse_rt_tables(
+    path: str | os.PathLike[str] = "/etc/iproute2/rt_tables",
+) -> dict[int, str]:
+    """
+    Parse routing table id to routing table name mapping file.
+    """
+    return _parse_rt_mapping(path)
+
+
+def parse_rt_protos(
+    path: str | os.PathLike[str] = "/etc/iproute2/rt_protos",
+) -> dict[int, str]:
+    """
+    Parse protocol id to protocol name mapping file.
+    """
+    return _parse_rt_mapping(path)
+
+
+def parse_rt_scopes(
+    path: str | os.PathLike[str] = "/etc/iproute2/rt_scopes",
+) -> dict[int, str]:
+    """
+    Parse scope id to scope name mapping file.
+    """
+    return _parse_rt_mapping(path)

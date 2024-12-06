@@ -5,6 +5,8 @@ from aiortnetlink import NetlinkClient
 
 __all__ = ["run", "main"]
 
+from aiortnetlink.route import parse_rt_protos, parse_rt_scopes
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("aiortnetlink")
@@ -138,8 +140,12 @@ async def run(args: argparse.Namespace) -> None:
                 from aiortnetlink.route import parse_rt_tables
 
                 table_id_to_name = parse_rt_tables()
+                proto_id_to_name = parse_rt_protos()
+                scope_id_to_name = parse_rt_scopes()
             else:
                 table_id_to_name = {}
+                proto_id_to_name = {}
+                scope_id_to_name = {}
 
             if args.ipv4:
                 ip_versions: tuple[int, ...] = (4,)
@@ -149,12 +155,24 @@ async def run(args: argparse.Namespace) -> None:
                 ip_versions = (4, 6)
 
             async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+                link_index_to_name = {
+                    link.index: link.name async for link in nl.get_links()
+                }
                 async for route in nl.get_routes():
                     if table and table != route.table:
                         continue
                     if route.ip_version not in ip_versions:
                         continue
-                    print(f"{table_id_to_name.get(route.table, route.table)}: {route=}")
+                    # print(f"{table_id_to_name.get(route.table, route.table)}: {route=}")
+                    print(
+                        route.friendly_str(
+                            show_table=table is None,
+                            table_id_to_name=table_id_to_name.get,
+                            proto_id_to_name=proto_id_to_name.get,
+                            scope_id_to_name=scope_id_to_name.get,
+                            link_index_to_name=link_index_to_name.get,
+                        )
+                    )
 
         case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
             if args.ipv4:
