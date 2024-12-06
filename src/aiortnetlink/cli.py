@@ -6,7 +6,7 @@ from aiortnetlink import NetlinkClient
 __all__ = ["run", "main"]
 
 
-async def run() -> None:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("aiortnetlink")
     parser.add_argument(
         "--rcvbuf-size", type=int, help="Set netlink socket receive buffer size"
@@ -77,8 +77,10 @@ async def run() -> None:
     watch_parser.add_argument("-r", "--route", action="store_true", help="Watch routes")
     watch_parser.add_argument("--rule", action="store_true", help="Watch rules")
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+async def run(args: argparse.Namespace) -> None:
     match args:
         case argparse.Namespace(object="link" | "l", command="show" | "s", DEV=dev):
             ifi_index: int = 0
@@ -235,10 +237,12 @@ async def run() -> None:
 
 
 def main() -> None:
+    args = parse_args()
+
     import asyncio
 
     try:
-        asyncio.run(run())
+        asyncio.run(run(args))
     except KeyboardInterrupt:
         print("Interrupted by user.", file=sys.stderr)
         sys.exit(1)
