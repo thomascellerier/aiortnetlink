@@ -226,7 +226,7 @@ async def run() -> None:
                     for group in type_groups
                 )
 
-            async with NetlinkClient(groups=groups) as nl:
+            async with NetlinkClient(groups=groups, rcvbuf_size=args.rcvbuf_size) as nl:
                 while notification := await nl.recv_notification():
                     print(f"{notification=}")
 
