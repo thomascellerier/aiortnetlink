@@ -139,10 +139,12 @@ class Route:
     priority: int | None = None
     gateway: IPv4Address | IPv6Address | None = None
     dst: IPv4Address | IPv6Address | None = None
+    src: IPv4Address | IPv6Address | None = None
     prefsrc: IPv4Address | IPv6Address | None = None
     iif: int | None = None
     oif: int | None = None
     pref: int | None = None
+    mark: int | None = None
 
     @property
     def ip_version(self) -> Literal[4, 6]:
@@ -164,10 +166,12 @@ class Route:
         iif: int | None = None
         oif: int | None = None
         dst: IPv4Address | IPv6Address | None = None
+        src: IPv4Address | IPv6Address | None = None
         gateway: IPv4Address | IPv6Address | None = None
         prefsrc: IPv4Address | IPv6Address | None = None
         priority: int | None = None
         pref: int | None = None
+        mark: int | None = None
 
         for nlattr in msg.attrs(rtm_size):
             match nlattr.attr_type:
@@ -187,6 +191,10 @@ class Route:
                     pref = nlattr.as_int()
                 case RTAType.RTA_PREFSRC:
                     prefsrc = nlattr.as_ipaddress()
+                case RTAType.RTA_SRC:
+                    src = nlattr.as_ipaddress()
+                case RTAType.RTA_MARK:
+                    mark = nlattr.as_int()
                 case _:
                     # TODO: Handle remaining attributes, e.g. RTA_UNSPEC and RTA_CACHEINFO
                     pass
@@ -204,10 +212,12 @@ class Route:
             iif=iif,
             oif=oif,
             dst=dst,
+            src=src,
             gateway=gateway,
             priority=priority,
             pref=pref,
             prefsrc=prefsrc,
+            mark=mark,
         )
 
     @classmethod
@@ -236,12 +246,29 @@ class Route:
         else:
             parts.append("default")
 
+        if self.src:
+            if self.src_len == self.src.max_prefixlen:
+                parts.extend(["from", str(self.src)])
+            else:
+                parts.extend(
+                    ["from", str(ipaddress.ip_interface((self.src, self.src_len)))]
+                )
+        elif self.src_len > 0:
+            parts.extend(["from", f"0/{self.src_len}"])
+
         if self.gateway:
             parts.extend(["via", str(self.gateway)])
+
+        if self.iif is not None:
+            iif = link_index_to_name(self.iif) or str(self.iif)
+            parts.extend(["iif", iif])
 
         if self.oif is not None:
             oif = link_index_to_name(self.oif) or str(self.oif)
             parts.extend(["dev", oif])
+
+        if self.tos:
+            parts.extend(["tos", str(self.tos)])
 
         if self.protocol:
             proto = proto_id_to_name(self.protocol) or str(self.protocol)
@@ -265,6 +292,11 @@ class Route:
                     .name.removeprefix("ICMPV6_ROUTER_PREF_")
                     .lower(),
                 ]
+            )
+
+        if self.mark is not None:
+            parts.extend(
+                ["mark", hex(self.mark) if self.mark >= 16 else str(self.mark)]
             )
 
         if show_table:

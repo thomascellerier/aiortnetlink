@@ -157,9 +157,13 @@ async def run(args: argparse.Namespace) -> None:
                 ip_versions = (4, 6)
 
             async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
-                link_index_to_name = {
-                    link.index: link.name async for link in nl.get_links()
-                }
+                if args.numeric:
+                    link_index_to_name = {
+                        link.index: link.name async for link in nl.get_links()
+                    }
+                else:
+                    link_index_to_name = {}
+
                 async for route in nl.get_routes():
                     if table and table != route.table:
                         continue
