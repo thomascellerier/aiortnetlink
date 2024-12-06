@@ -5,6 +5,8 @@ from aiortnetlink import NetlinkClient
 
 __all__ = ["run", "main"]
 
+from aiortnetlink.link import parse_rt_groups
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("aiortnetlink")
@@ -21,6 +23,12 @@ def parse_args() -> argparse.Namespace:
 
     # link show
     link_show_parser = link_subparsers.add_parser("show", aliases=["s"])
+    link_show_parser.add_argument(
+        "-n",
+        "--numeric",
+        help="don't map group id to group name",
+        action="store_true",
+    )
     link_show_parser.add_argument("DEV", default=None, nargs="?")
 
     # addr
@@ -115,8 +123,13 @@ async def run(args: argparse.Namespace) -> None:
                 else:
                     links = [link async for link in nl.get_links()]
 
+            if not args.numeric:
+                group_id_to_name = parse_rt_groups()
+            else:
+                group_id_to_name = {}
+
             for link in links:
-                print(f"{link.index}: {link.name}")
+                print(link.friendly_str(group_id_to_name=group_id_to_name.get))
 
         case argparse.Namespace(object="address" | "addr" | "a", command="show" | "s"):
             from collections import defaultdict

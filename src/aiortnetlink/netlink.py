@@ -136,6 +136,9 @@ class NLAttr(NamedTuple):
     def as_ipaddress(self) -> IPv4Address | IPv6Address:
         return ipaddress.ip_address(self.data.tobytes())
 
+    def as_macaddress(self) -> str:
+        return self.data.hex(sep=":", bytes_per_sep=1)
+
 
 class NLMsg(NamedTuple):
     msg_len: int

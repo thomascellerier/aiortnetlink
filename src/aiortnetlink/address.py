@@ -14,7 +14,7 @@ from ipaddress import (
 )
 from typing import Final, Literal
 
-from aiortnetlink.link import IFLA_IFNAME
+from aiortnetlink.link import IFLAType
 from aiortnetlink.netlink import (
     NLM_F_DUMP,
     NLM_F_REQUEST,
@@ -66,7 +66,7 @@ def get_addr_request(
     parts = [ifaddrmsg(index=ifi_index)]
     flags = NLM_F_REQUEST
     if ifi_name is not None:
-        parts.append(encode_nlattr_str(IFLA_IFNAME, ifi_name))
+        parts.append(encode_nlattr_str(IFLAType.IFNAME, ifi_name))
     elif ifi_index == 0:
         flags |= NLM_F_DUMP
     data = b"".join(parts)
