@@ -3,7 +3,6 @@ See https://docs.kernel.org/networking/netlink_spec/rt_route.html
 """
 
 import ipaddress
-import os
 import socket
 import struct
 from dataclasses import dataclass
@@ -12,16 +11,12 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Callable, Final, Literal, NamedTuple
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
-from aiortnetlink.rtfile import parse_rt_mapping
 from aiortnetlink.rtm import RTM_GETROUTE, RTM_NEWROUTE
 
 __all__ = [
     "RTMsg",
     "get_route_request",
     "Route",
-    "parse_rt_tables",
-    "parse_rt_protos",
-    "parse_rt_scopes",
 ]
 
 _RTMSG_FMT = b"BBBBBBBBI"
@@ -305,30 +300,3 @@ class Route:
             parts.extend(["table", table])
 
         return " ".join(parts)
-
-
-def parse_rt_tables(
-    path: str | os.PathLike[str] = "/etc/iproute2/rt_tables",
-) -> dict[int, str]:
-    """
-    Parse routing table id to routing table name mapping file.
-    """
-    return parse_rt_mapping(path)
-
-
-def parse_rt_protos(
-    path: str | os.PathLike[str] = "/etc/iproute2/rt_protos",
-) -> dict[int, str]:
-    """
-    Parse protocol id to protocol name mapping file.
-    """
-    return parse_rt_mapping(path)
-
-
-def parse_rt_scopes(
-    path: str | os.PathLike[str] = "/etc/iproute2/rt_scopes",
-) -> dict[int, str]:
-    """
-    Parse scope id to scope name mapping file.
-    """
-    return parse_rt_mapping(path)

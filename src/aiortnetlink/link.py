@@ -2,7 +2,6 @@
 See https://docs.kernel.org/networking/netlink_spec/rt_link.html
 """
 
-import os
 import struct
 from dataclasses import dataclass
 from enum import IntEnum
@@ -15,10 +14,9 @@ from aiortnetlink.netlink import (
     NLMsg,
     encode_nlattr_str,
 )
-from aiortnetlink.rtfile import parse_rt_mapping
 from aiortnetlink.rtm import RTM_GETLINK, RTM_NEWLINK
 
-__all__ = ["IFLink", "IFLAType", "Flags", "ifinfomsg", "parse_rt_groups"]
+__all__ = ["IFLink", "IFLAType", "Flags", "ifinfomsg"]
 
 # See <linux/if_arp.h>
 ARPHRD_ETHER: Final = 1
@@ -285,12 +283,3 @@ def get_link_request(
         flags |= NLM_F_DUMP
     data = b"".join(parts)
     return NetlinkGetRequest(RTM_GETLINK, flags, data, RTM_NEWLINK)
-
-
-def parse_rt_groups(
-    path: str | os.PathLike[str] = "/etc/iproute2/group",
-) -> dict[int, str]:
-    """
-    Parse group id to group name mapping file.
-    """
-    return parse_rt_mapping(path)

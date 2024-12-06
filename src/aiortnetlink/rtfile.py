@@ -1,9 +1,9 @@
 import os
 
-__all__ = ["parse_rt_mapping"]
+__all__ = ["parse_rt_tables", "parse_rt_protos", "parse_rt_scopes", "parse_rt_groups"]
 
 
-def parse_rt_mapping(path: str | os.PathLike[str]) -> dict[int, str]:
+def _parse_rt_mapping(path: str | os.PathLike[str]) -> dict[int, str]:
     """
     Parse rt int to str mapping file.
     """
@@ -36,3 +36,39 @@ def parse_rt_mapping(path: str | os.PathLike[str]) -> dict[int, str]:
                         f"but got {line.rstrip()!r}"
                     )
     return entry_id_to_name
+
+
+def parse_rt_tables(
+    path: str | os.PathLike[str] = "/etc/iproute2/rt_tables",
+) -> dict[int, str]:
+    """
+    Parse routing table id to routing table name mapping file.
+    """
+    return _parse_rt_mapping(path)
+
+
+def parse_rt_protos(
+    path: str | os.PathLike[str] = "/etc/iproute2/rt_protos",
+) -> dict[int, str]:
+    """
+    Parse protocol id to protocol name mapping file.
+    """
+    return _parse_rt_mapping(path)
+
+
+def parse_rt_scopes(
+    path: str | os.PathLike[str] = "/etc/iproute2/rt_scopes",
+) -> dict[int, str]:
+    """
+    Parse scope id to scope name mapping file.
+    """
+    return _parse_rt_mapping(path)
+
+
+def parse_rt_groups(
+    path: str | os.PathLike[str] = "/etc/iproute2/group",
+) -> dict[int, str]:
+    """
+    Parse group id to group name mapping file.
+    """
+    return _parse_rt_mapping(path)

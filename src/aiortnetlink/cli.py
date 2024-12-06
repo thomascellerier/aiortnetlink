@@ -128,7 +128,7 @@ async def run(args: argparse.Namespace) -> None:
                     links = [link async for link in nl.get_links()]
 
             if not args.numeric:
-                from aiortnetlink.link import parse_rt_groups
+                from aiortnetlink.rtfile import parse_rt_groups
 
                 group_id_to_name = parse_rt_groups()
             else:
@@ -148,7 +148,7 @@ async def run(args: argparse.Namespace) -> None:
                 link_by_if_index = {link.index: link async for link in nl.get_links()}
 
             if not args.numeric:
-                from aiortnetlink.route import parse_rt_scopes
+                from aiortnetlink.rtfile import parse_rt_scopes
 
                 scope_id_to_name = parse_rt_scopes()
             else:
@@ -165,7 +165,7 @@ async def run(args: argparse.Namespace) -> None:
             object="route" | "ro" | "r", command="show" | "s", table=table
         ):
             if not args.numeric:
-                from aiortnetlink.route import (
+                from aiortnetlink.rtfile import (
                     parse_rt_protos,
                     parse_rt_scopes,
                     parse_rt_tables,
@@ -211,9 +211,7 @@ async def run(args: argparse.Namespace) -> None:
 
         case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
             if not args.numeric:
-                from aiortnetlink.route import (
-                    parse_rt_tables,
-                )
+                from aiortnetlink.rtfile import parse_rt_tables
 
                 table_id_to_name = parse_rt_tables()
             else:
