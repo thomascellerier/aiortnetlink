@@ -5,6 +5,12 @@ description = "Netlink client for asyncio"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+authors = [
+  {name = "Thomas Cellerier"},
+]
+maintainers = [
+  {name = "Thomas Cellerier"},
+]
 
 [project.urls]
 source = "https://github.com/thomascellerier/aiortnetlink"
