@@ -191,7 +191,7 @@ async def run(args: argparse.Namespace) -> None:
                 scope_id_to_name = {}
 
             if args.ipv4:
-                ip_versions: tuple[int, ...] = (4,)
+                ip_versions = (4,)
             elif args.ipv6:
                 ip_versions = (6,)
             else:
