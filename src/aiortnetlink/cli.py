@@ -2,10 +2,9 @@ import argparse
 import sys
 
 from aiortnetlink import NetlinkClient
+from aiortnetlink.netlink import NetlinkError
 
 __all__ = ["run", "main"]
-
-from aiortnetlink.netlink import NetlinkError
 
 
 def parse_args() -> argparse.Namespace:
