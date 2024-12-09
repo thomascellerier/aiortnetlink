@@ -8,7 +8,7 @@ import struct
 import typing
 from typing import Final, Literal
 
-__all__ = ["create_tun"]
+__all__ = ["create_tuntap", "delete_tuntap"]
 
 
 # See <linux/uapi/asm-generic/ioctl.h>
@@ -82,7 +82,7 @@ def _ifreq_setiff(name: str, mode: Literal["tun", "tap"]) -> bytes:
     return struct.pack(_IFREQFMT, name.encode("ascii"), flags)
 
 
-def create_tun(
+def create_tuntap(
     name: str,
     mode: Literal["tun", "tap"],
     uid: int | None = None,
@@ -100,7 +100,7 @@ def create_tun(
         fcntl.ioctl(fd, TUNSETPERSIST, 1)
 
 
-def delete_tun(
+def delete_tuntap(
     name: str,
     mode: Literal["tun", "tap"],
     *,
@@ -115,24 +115,24 @@ def delete_tun(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest="command")
+    tuntap_parser = argparse.ArgumentParser()
+    subparsers = tuntap_parser.add_subparsers(dest="command")
 
-    add_parser = subparsers.add_parser("add")
-    add_parser.add_argument("NAME")
-    add_parser.add_argument("MODE", choices=("tun", "tap"))
-    add_parser.add_argument("--user")
-    add_parser.add_argument("--group")
+    tuntap_add_parser = subparsers.add_parser("add")
+    tuntap_add_parser.add_argument("NAME")
+    tuntap_add_parser.add_argument("MODE", choices=("tun", "tap"))
+    tuntap_add_parser.add_argument("--user")
+    tuntap_add_parser.add_argument("--group")
 
-    del_parser = subparsers.add_parser("del")
-    del_parser.add_argument("NAME")
-    del_parser.add_argument("MODE", choices=("tun", "tap"))
+    tuntap_del_parser = subparsers.add_parser("del")
+    tuntap_del_parser.add_argument("NAME")
+    tuntap_del_parser.add_argument("MODE", choices=("tun", "tap"))
 
-    args = parser.parse_args()
+    args = tuntap_parser.parse_args()
 
     match args:
         case argparse.Namespace(command="del"):
-            delete_tun(args.NAME, args.MODE)
+            delete_tuntap(args.NAME, args.MODE)
 
         case argparse.Namespace(command="add", user=user, group=group):
             uid: int | None
@@ -159,7 +159,7 @@ if __name__ == "__main__":
                 case _:
                     gid = None
 
-            create_tun(args.NAME, args.MODE, uid=uid, gid=gid)
+            create_tuntap(args.NAME, args.MODE, uid=uid, gid=gid)
 
         case _:
             assert False, "unreachable"

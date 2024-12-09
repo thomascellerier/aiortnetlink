@@ -108,6 +108,22 @@ def parse_args() -> argparse.Namespace:
     watch_parser.add_argument("-r", "--route", action="store_true", help="Watch routes")
     watch_parser.add_argument("--rule", action="store_true", help="Watch rules")
 
+    # tuntap
+    tuntap_parser = subparsers.add_parser("tuntap")
+    tuntap_subparsers = tuntap_parser.add_subparsers(dest="command", required=True)
+
+    # tuntap add
+    tuntap_add_parser = tuntap_subparsers.add_parser("add")
+    tuntap_add_parser.add_argument("NAME")
+    tuntap_add_parser.add_argument("MODE", choices=("tun", "tap"))
+    tuntap_add_parser.add_argument("--user")
+    tuntap_add_parser.add_argument("--group")
+
+    # tuntap del
+    tuntap_del_parser = tuntap_subparsers.add_parser("del")
+    tuntap_del_parser.add_argument("NAME")
+    tuntap_del_parser.add_argument("MODE", choices=("tun", "tap"))
+
     return parser.parse_args()
 
 
@@ -358,8 +374,42 @@ async def run(args: argparse.Namespace) -> None:
                 while notification := await nl.recv_notification():
                     print(f"{notification=}")
 
+        case argparse.Namespace(object="tuntap", command="del"):
+            from aiortnetlink.tuntap import delete_tuntap
+
+            delete_tuntap(args.NAME, args.MODE)
+
+        case argparse.Namespace(object="tuntap", command="add", user=user, group=group):
+            uid: int | None
+            match user:
+                case str():
+                    try:
+                        uid = int(user)
+                    except ValueError:
+                        import pwd
+
+                        uid = pwd.getpwnam(user).pw_uid
+                case _:
+                    uid = None
+
+            gid: int | None
+            match group:
+                case str():
+                    try:
+                        gid = int(group)
+                    except ValueError:
+                        import grp
+
+                        gid = grp.getgrnam(group).gr_gid
+                case _:
+                    gid = None
+
+            from aiortnetlink.tuntap import create_tuntap
+
+            create_tuntap(args.NAME, args.MODE, uid=uid, gid=gid)
+
         case _:
-            assert False, ""
+            assert False, f"Invalid command: {args}"
 
 
 def main() -> None:
