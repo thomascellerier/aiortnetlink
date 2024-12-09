@@ -2,6 +2,7 @@
 See https://docs.kernel.org/networking/netlink_spec/rt_addr.html
 """
 
+import socket
 import struct
 from dataclasses import dataclass
 from enum import IntEnum
@@ -14,21 +15,34 @@ from ipaddress import (
 )
 from typing import Callable, Final, Literal, NamedTuple
 
-from aiortnetlink.link import IFLAType
 from aiortnetlink.netlink import (
+    NLM_F_ACK,
+    NLM_F_CREATE,
     NLM_F_DUMP,
+    NLM_F_EXCL,
     NLM_F_REQUEST,
-    NetlinkGetRequest,
+    NetlinkRequest,
     NetlinkValueError,
+    NLAttr,
     NLMsg,
     encode_nlattr_str,
 )
-from aiortnetlink.rtm import RTM_GETADDR, RTM_NEWADDR
+from aiortnetlink.rtm import RTM_DELADDR, RTM_GETADDR, RTM_NEWADDR
 
 __all__ = ["ifaddrmsg", "get_addr_request", "IFAddr"]
 
 
 class IFA_Type(IntEnum):
+    """
+    IFA_ADDRESS is prefix address, rather than local interface address.
+    It makes no difference for normally configured broadcast interfaces,
+    but for point-to-point IFA_ADDRESS is DESTINATION address,
+    local address is supplied in IFA_LOCAL attribute.
+
+    IFA_FLAGS is a u32 attribute that extends the u8 field ifa_flags.
+    f present, the value from struct ifaddrmsg will be ignored.
+    """
+
     UNSPEC: Final = 0
     ADDRESS: Final = 1
     LOCAL: Final = 2
@@ -86,21 +100,59 @@ def ifaddrmsg(
     return struct.pack(_IFADDRMSG_FMT, family, prefixlen, flags, scope, index)
 
 
-def get_addr_request(
-    ifi_index: int = 0, ifi_name: str | None = None
-) -> NetlinkGetRequest:
+def get_addr_request(ifi_index: int = 0, ifi_name: str | None = None) -> NetlinkRequest:
     parts = [ifaddrmsg(index=ifi_index)]
     flags = NLM_F_REQUEST
     if ifi_name is not None:
-        parts.append(encode_nlattr_str(IFLAType.IFNAME, ifi_name))
+        parts.append(encode_nlattr_str(IFA_Type.LABEL, ifi_name))
     elif ifi_index == 0:
         flags |= NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkGetRequest(RTM_GETADDR, flags, data, RTM_NEWADDR)
+    return NetlinkRequest(RTM_GETADDR, flags, data, RTM_NEWADDR)
 
 
 IPAddress = IPv4Address | IPv6Address
 IPInterface = IPv4Interface | IPv6Interface
+
+
+def add_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
+    if ifi_index < 1:
+        raise NetlinkValueError(
+            f"Interface index must be specified when deleting address {address}"
+        )
+    flags = NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE | NLM_F_EXCL
+    parts = [
+        ifaddrmsg(
+            family=socket.AF_INET if address.version == 4 else socket.AF_INET6,
+            prefixlen=address.network.prefixlen,
+            scope=0,  # global
+            index=ifi_index,
+            flags=IFA_Flags.PERMANENT,
+        ),
+        NLAttr.from_ipaddress(IFA_Type.LOCAL, address.ip),
+    ]
+    data = b"".join(parts)
+    return NetlinkRequest(RTM_NEWADDR, flags, data, RTM_NEWADDR)
+
+
+def del_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
+    if ifi_index < 1:
+        raise NetlinkValueError(
+            f"Interface index must be specified when deleting address {address}"
+        )
+    flags = NLM_F_REQUEST | NLM_F_ACK
+    parts = [
+        ifaddrmsg(
+            family=socket.AF_INET if address.version == 4 else socket.AF_INET6,
+            prefixlen=address.network.prefixlen,
+            scope=0,
+            index=ifi_index,
+            flags=0,
+        ),
+        NLAttr.from_ipaddress(IFA_Type.LOCAL, address.ip),
+    ]
+    data = b"".join(parts)
+    return NetlinkRequest(RTM_DELADDR, flags, data, RTM_NEWADDR)
 
 
 _UINT32_MAX = (2**32) - 1
@@ -194,10 +246,16 @@ class IFAddr:
         )
 
     @classmethod
-    def rtm_get(
-        cls, ifi_index: int = 0, ifi_name: str | None = None
-    ) -> NetlinkGetRequest:
+    def rtm_get(cls, ifi_index: int = 0, ifi_name: str | None = None) -> NetlinkRequest:
         return get_addr_request(ifi_index, ifi_name)
+
+    @classmethod
+    def rtm_add(cls, address: IPInterface, ifi_index: int) -> NetlinkRequest:
+        return add_addr_request(address, ifi_index)
+
+    @classmethod
+    def rtm_del(cls, address: IPInterface, ifi_index: int) -> NetlinkRequest:
+        return del_addr_request(address, ifi_index)
 
     def friendly_str(
         self, scope_id_to_name: Callable[[int], str | None] = lambda _: None

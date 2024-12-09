@@ -9,7 +9,7 @@ from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
 from typing import Callable, Final, Literal
 
-from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
+from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkRequest, NLMsg
 from aiortnetlink.route import RTMsg, RTNType
 from aiortnetlink.rtm import RTM_GETRULE, RTM_NEWRULE
 
@@ -46,11 +46,11 @@ class FRAType(IntEnum):
     FRA_UID_END: Final = 18
 
 
-def get_rule_request() -> NetlinkGetRequest:
+def get_rule_request() -> NetlinkRequest:
     parts = [RTMsg().encode()]
     flags = NLM_F_REQUEST | NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkGetRequest(RTM_GETRULE, flags, data, RTM_NEWRULE)
+    return NetlinkRequest(RTM_GETRULE, flags, data, RTM_NEWRULE)
 
 
 @dataclass(slots=True)
@@ -135,7 +135,7 @@ class Rule:
         )
 
     @classmethod
-    def rtm_get(cls) -> NetlinkGetRequest:
+    def rtm_get(cls) -> NetlinkRequest:
         return get_rule_request()
 
     def friendly_str(

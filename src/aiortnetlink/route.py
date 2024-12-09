@@ -10,7 +10,7 @@ from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
 from typing import Callable, Final, Literal, NamedTuple
 
-from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkGetRequest, NLMsg
+from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkRequest, NLMsg
 from aiortnetlink.rtm import RTM_GETROUTE, RTM_NEWROUTE
 
 __all__ = [
@@ -114,11 +114,11 @@ class RTMsg(NamedTuple):
         return struct.pack(_RTMSG_FMT, *self)
 
 
-def get_route_request() -> NetlinkGetRequest:
+def get_route_request() -> NetlinkRequest:
     parts = [RTMsg().encode()]
     flags = NLM_F_REQUEST | NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkGetRequest(RTM_GETROUTE, flags, data, RTM_NEWROUTE)
+    return NetlinkRequest(RTM_GETROUTE, flags, data, RTM_NEWROUTE)
 
 
 @dataclass(slots=True)
@@ -217,7 +217,7 @@ class Route:
         )
 
     @classmethod
-    def rtm_get(cls) -> NetlinkGetRequest:
+    def rtm_get(cls) -> NetlinkRequest:
         return get_route_request()
 
     def friendly_str(

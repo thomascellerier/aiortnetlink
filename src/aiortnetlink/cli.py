@@ -5,6 +5,8 @@ from aiortnetlink import NetlinkClient
 
 __all__ = ["run", "main"]
 
+from aiortnetlink.netlink import NetlinkError
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("aiortnetlink")
@@ -46,6 +48,16 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
     )
     addr_show_parser.add_argument("DEV", default=None, nargs="?")
+
+    # addr add
+    addr_add_parser = addr_subparsers.add_parser("add", aliases=["a"])
+    addr_add_parser.add_argument("ADDR", help="Address to add to the given device")
+    addr_add_parser.add_argument("DEV", help="Device name or index")
+
+    # addr del
+    addr_del_parser = addr_subparsers.add_parser("del", aliases=["d"])
+    addr_del_parser.add_argument("ADDR", help="Address to delete from the given device")
+    addr_del_parser.add_argument("DEV", help="Device name or index")
 
     # route
     route_parser = subparsers.add_parser("route", aliases=["ro", "r"])
@@ -100,16 +112,24 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _parse_dev(dev: str | None) -> tuple[int, str | None]:
+    """
+    Parse dev specifier to interface index and name tuple.
+    """
+    ifi_index = 0
+    ifi_name: str | None = None
+    if dev is not None:
+        try:
+            ifi_index = int(dev)
+        except ValueError:
+            ifi_name = dev
+    return ifi_index, ifi_name
+
+
 async def run(args: argparse.Namespace) -> None:
     match args:
         case argparse.Namespace(object="link" | "l", command="show" | "s", DEV=dev):
-            ifi_index: int = 0
-            ifi_name: str | None = None
-            if dev is not None:
-                try:
-                    ifi_index = int(dev)
-                except ValueError:
-                    ifi_name = dev
+            ifi_index, ifi_name = _parse_dev(dev)
 
             async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
                 if ifi_index != 0:
@@ -171,6 +191,38 @@ async def run(args: argparse.Namespace) -> None:
                     if addr.ip_version not in ip_versions:
                         continue
                     print(addr.friendly_str(scope_id_to_name=scope_id_to_name.get))
+
+        case argparse.Namespace(
+            object="address" | "addr" | "a", command="add" | "a", ADDR=addr, DEV=dev
+        ):
+            import ipaddress
+
+            address = ipaddress.ip_interface(addr)
+            ifi_index, ifi_name = _parse_dev(dev)
+
+            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+                if ifi_name is not None:
+                    link = await nl.get_link(ifi_name=ifi_name)
+                    if link is None:
+                        raise NetlinkError(f"No such device: {ifi_name}")
+                    ifi_index = link.index
+                await nl.add_addr(address, ifi_index=ifi_index)
+
+        case argparse.Namespace(
+            object="address" | "addr" | "a", command="del" | "d", ADDR=addr, DEV=dev
+        ):
+            import ipaddress
+
+            address = ipaddress.ip_interface(addr)
+            ifi_index, ifi_name = _parse_dev(dev)
+
+            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+                if ifi_name is not None:
+                    link = await nl.get_link(ifi_name=ifi_name)
+                    if link is None:
+                        raise NetlinkError(f"No such device: {ifi_name}")
+                    ifi_index = link.index
+                await nl.del_addr(address, ifi_index=ifi_index)
 
         case argparse.Namespace(
             object="route" | "ro" | "r", command="show" | "s", table=table

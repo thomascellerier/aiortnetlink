@@ -10,7 +10,7 @@ from typing import Callable, Final
 from aiortnetlink.netlink import (
     NLM_F_DUMP,
     NLM_F_REQUEST,
-    NetlinkGetRequest,
+    NetlinkRequest,
     NLMsg,
     encode_nlattr_str,
 )
@@ -210,9 +210,7 @@ class IFLink:
         )
 
     @classmethod
-    def rtm_get(
-        cls, ifi_index: int = 0, ifi_name: str | None = None
-    ) -> NetlinkGetRequest:
+    def rtm_get(cls, ifi_index: int = 0, ifi_name: str | None = None) -> NetlinkRequest:
         return get_link_request(ifi_index, ifi_name)
 
     def friendly_footer_str(self) -> str:
@@ -272,9 +270,7 @@ class IFLink:
         return " ".join(parts) + self.friendly_footer_str()
 
 
-def get_link_request(
-    ifi_index: int = 0, ifi_name: str | None = None
-) -> NetlinkGetRequest:
+def get_link_request(ifi_index: int = 0, ifi_name: str | None = None) -> NetlinkRequest:
     parts = [ifinfomsg(index=ifi_index)]
     flags = NLM_F_REQUEST
     if ifi_name is not None:
@@ -282,4 +278,4 @@ def get_link_request(
     elif ifi_index == 0:
         flags |= NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkGetRequest(RTM_GETLINK, flags, data, RTM_NEWLINK)
+    return NetlinkRequest(RTM_GETLINK, flags, data, RTM_NEWLINK)

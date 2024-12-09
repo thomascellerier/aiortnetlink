@@ -6,6 +6,7 @@ See:
 """
 
 import asyncio
+import binascii
 import ipaddress
 import socket
 import struct
@@ -26,6 +27,11 @@ __all__ = [
     "NLMSG_DONE",
     "NetlinkError",
     "NLM_F_MULTI",
+    "NLM_F_CREATE",
+    "NLM_F_REPLACE",
+    "NLM_F_EXCL",
+    "NLM_F_APPEND",
+    "NLM_F_ACK",
     "NetlinkProtocol",
     "create_netlink_endpoint",
     "decode_nlattr_int",
@@ -35,7 +41,7 @@ __all__ = [
     "encode_nlmsg",
     "encode_nlattr_int",
     "encode_nlattr_str",
-    "NetlinkGetRequest",
+    "NetlinkRequest",
 ]
 
 
@@ -64,6 +70,12 @@ NLM_F_ROOT: Final = 0x100
 NLM_F_MATCH: Final = 0x200
 NLM_F_ATOMIC: Final = 0x400
 NLM_F_DUMP: Final = NLM_F_ROOT | NLM_F_MATCH
+
+# Modifiers to NEW request
+NLM_F_REPLACE: Final = 0x100  # Override existing
+NLM_F_EXCL: Final = 0x200  # Do not touch, if it exists
+NLM_F_CREATE: Final = 0x400  # Create, if it does not exist
+NLM_F_APPEND: Final = 0x800  # Add to end of lis
 
 # See <uapi/linux/genetlink.h>
 GENL_ID_CTRL: Final = NLMSG_MIN_TYPE
@@ -139,6 +151,24 @@ class NLAttr(NamedTuple):
     def as_macaddress(self) -> str:
         return self.data.hex(sep=":", bytes_per_sep=1)
 
+    @staticmethod
+    def from_string(attr_type: int, value: str) -> bytes:
+        return encode_nlattr_str(attr_type, value)
+
+    @staticmethod
+    def from_int(attr_type: int, value: int) -> bytes:
+        return encode_nlattr_int(attr_type, value)
+
+    @staticmethod
+    def from_ipaddress(
+        attr_type: int, value: ipaddress.IPv4Address | ipaddress.IPv6Address
+    ) -> bytes:
+        return encode_nlattr_ipaddress(attr_type, value)
+
+    @staticmethod
+    def from_macaddress(attr_type: int, value: str) -> bytes:
+        return _nlattr(attr_type, binascii.unhexlify(value.replace(":", "")))
+
 
 class NLMsg(NamedTuple):
     msg_len: int
@@ -208,6 +238,12 @@ def decode_nlattr_int(data: memoryview) -> int:
 
 def encode_nlattr_int(nla_type: int, value: int) -> bytes:
     return _nlattr(nla_type, value.to_bytes(4, sys.byteorder))
+
+
+def encode_nlattr_ipaddress(
+    nla_type: int, value: ipaddress.IPv4Address | ipaddress.IPv6Address
+) -> bytes:
+    return _nlattr(nla_type, value.packed)
 
 
 class NetlinkError(Exception):
@@ -430,7 +466,7 @@ async def create_netlink_endpoint(
     )
 
 
-class NetlinkGetRequest(NamedTuple):
+class NetlinkRequest(NamedTuple):
     msg_type: int
     flags: int
     data: bytes

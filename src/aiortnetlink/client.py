@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import collections
 import os
+from ipaddress import IPv4Interface, IPv6Interface
 from typing import TYPE_CHECKING, Iterable
 
 from aiortnetlink.lazy import (
@@ -15,13 +16,15 @@ from aiortnetlink.lazy import (
 from aiortnetlink.netlink import (
     NLM_F_DUMP_INTR,
     NLM_F_MULTI,
+    NLM_F_REQUEST,
     NLMSG_DONE,
     NLMSG_ERROR,
     NetlinkDumpInterruptedError,
     NetlinkError,
-    NetlinkGetRequest,
     NetlinkOSError,
     NetlinkProtocol,
+    NetlinkRequest,
+    NetlinkValueError,
     NLMsg,
     create_netlink_endpoint,
     decode_nlmsg_error,
@@ -174,7 +177,12 @@ class NetlinkClient:
             # TODO: Pass msg type
             raise NetlinkDumpInterruptedError("Netlink dump interrupted")
 
-    async def _send_request(self, request: NetlinkGetRequest) -> AsyncIterator[NLMsg]:
+    async def _send_request(self, request: NetlinkRequest) -> AsyncIterator[NLMsg]:
+        if not request.flags & NLM_F_REQUEST:
+            raise NetlinkValueError(
+                f"Netlink request should have request flag set {bin(NLM_F_REQUEST)}, "
+                f"but got {bin(request.flags)}"
+            )
         seqno = self._send_nlmsg(request.msg_type, request.flags, request.data)
         async for msg, group in self._recv_response(request.response_type, seqno):
             assert group == 0
@@ -211,6 +219,22 @@ class NetlinkClient:
         request = ifaddr_type_.rtm_get(ifi_index=ifi_index, ifi_name=ifi_name)
         async for msg in self._send_request(request):
             yield ifaddr_type_.from_nlmsg(msg)
+
+    async def add_addr(
+        self, addr: IPv4Interface | IPv6Interface, ifi_index: int
+    ) -> None:
+        ifaddr_type_ = ifaddr_type()
+        request = ifaddr_type_.rtm_add(addr, ifi_index=ifi_index)
+        async for _ in self._send_request(request):
+            pass
+
+    async def del_addr(
+        self, addr: IPv4Interface | IPv6Interface, ifi_index: int
+    ) -> None:
+        ifaddr_type_ = ifaddr_type()
+        request = ifaddr_type_.rtm_del(addr, ifi_index=ifi_index)
+        async for _ in self._send_request(request):
+            pass
 
     async def get_routes(self) -> AsyncIterator[Route]:
         route_type_ = route_type()
