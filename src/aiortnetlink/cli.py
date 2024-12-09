@@ -374,11 +374,6 @@ async def run(args: argparse.Namespace) -> None:
                 while notification := await nl.recv_notification():
                     print(f"{notification=}")
 
-        case argparse.Namespace(object="tuntap", command="del"):
-            from aiortnetlink.tuntap import delete_tuntap
-
-            delete_tuntap(args.NAME, args.MODE)
-
         case argparse.Namespace(object="tuntap", command="add", user=user, group=group):
             uid: int | None
             match user:
@@ -407,6 +402,11 @@ async def run(args: argparse.Namespace) -> None:
             from aiortnetlink.tuntap import create_tuntap
 
             create_tuntap(args.NAME, args.MODE, uid=uid, gid=gid)
+
+        case argparse.Namespace(object="tuntap", command="del"):
+            from aiortnetlink.tuntap import delete_tuntap
+
+            delete_tuntap(args.NAME, args.MODE)
 
         case _:
             assert False, f"Invalid command: {args}"
