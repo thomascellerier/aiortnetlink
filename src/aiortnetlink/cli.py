@@ -124,6 +124,9 @@ def parse_args() -> argparse.Namespace:
     tuntap_del_parser.add_argument("NAME")
     tuntap_del_parser.add_argument("MODE", choices=("tun", "tap"))
 
+    # gen
+    _ = subparsers.add_parser("gen")
+
     return parser.parse_args()
 
 
@@ -407,6 +410,10 @@ async def run(args: argparse.Namespace) -> None:
             from aiortnetlink.tuntap import delete_tuntap
 
             delete_tuntap(args.NAME, args.MODE)
+
+        case argparse.Namespace(object="gen"):
+            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+                await nl.get_family("nlctrl")
 
         case _:
             assert False, f"Invalid command: {args}"

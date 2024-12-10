@@ -247,3 +247,11 @@ class NetlinkClient:
         request = rule_type_.rtm_get()
         async for msg in self._send_request(request):
             yield rule_type_.from_nlmsg(msg)
+
+    async def get_family(self, family: str) -> None:
+        # TODO: Make it work!
+        from aiortnetlink.gennl import get_family_request
+
+        request = get_family_request(family)
+        async for msg in self._send_request(request):
+            print(f"{msg=}")

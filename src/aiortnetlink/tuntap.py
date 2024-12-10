@@ -53,24 +53,17 @@ TUNGETIFF: Final = _ior(ord("T"), 210, struct.calcsize("I"))
 IFF_TUN: Final = 0x0001
 IFF_TAP: Final = 0x0002
 
-
-# See <linux/uapi/linux/if.h>
 IFNAMSIZ: Final = 16
 
-_IFREQFMT: Final = f"{IFNAMSIZ}shxx"
+_IFReq = struct.Struct(
+    f"{IFNAMSIZ}s"  # Interface name
+    "h"  # Flags
+    "x"  # Padding
+    "x"  # Padding
+)
 
 
 def _ifreq_setiff(name: str, mode: Literal["tun", "tap"]) -> bytes:
-    """
-    struct ifreq {
-        char ifr_name[IFNAMSIZ]; /* Interface name */
-        union {
-            [...]
-            short           ifr_flags;
-            [...]
-        };
-    };
-    """
     flags = 0
     match mode:
         case "tun":
@@ -79,7 +72,7 @@ def _ifreq_setiff(name: str, mode: Literal["tun", "tap"]) -> bytes:
             flags |= IFF_TAP
         case unreachable:
             typing.assert_never(unreachable)
-    return struct.pack(_IFREQFMT, name.encode("ascii"), flags)
+    return _IFReq.pack(name.encode("ascii"), flags)
 
 
 def create_tuntap(

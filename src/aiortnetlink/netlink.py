@@ -32,6 +32,7 @@ __all__ = [
     "NLM_F_EXCL",
     "NLM_F_APPEND",
     "NLM_F_ACK",
+    "NLMSG_MIN_TYPE",
     "NetlinkProtocol",
     "create_netlink_endpoint",
     "decode_nlattr_int",
@@ -77,38 +78,6 @@ NLM_F_EXCL: Final = 0x200  # Do not touch, if it exists
 NLM_F_CREATE: Final = 0x400  # Create, if it does not exist
 NLM_F_APPEND: Final = 0x800  # Add to end of lis
 
-# See <uapi/linux/genetlink.h>
-GENL_ID_CTRL: Final = NLMSG_MIN_TYPE
-
-CTRL_CMD_UNSPEC: Final = 0
-CTRL_CMD_NEWFAMILY: Final = 1
-CTRL_CMD_DELFAMILY: Final = 2
-CTRL_CMD_GETFAMILY: Final = 3
-CTRL_CMD_NEWOPS: Final = 4
-CTRL_CMD_DELOPS: Final = 5
-CTRL_CMD_GETOPS: Final = 6
-CTRL_CMD_NEWMCAST_GRP: Final = 7
-CTRL_CMD_DELMCAST_GRP: Final = 8
-CTRL_CMD_GETMCAST_GRP: Final = 9  # unused
-
-CTRL_ATTR_UNSPEC: Final = 0
-CTRL_ATTR_FAMILY_ID: Final = 1
-CTRL_ATTR_FAMILY_NAME: Final = 2
-CTRL_ATTR_VERSION: Final = 3
-CTRL_ATTR_HDRSIZE: Final = 4
-CTRL_ATTR_MAXATTR: Final = 5
-CTRL_ATTR_OPS: Final = 6
-CTRL_ATTR_MCAST_GROUPS: Final = 7
-
-# NL structs
-_NLMSGHDR_FMT: Final = "IHHII"
-_NLMSGHDR_SIZE: Final = struct.calcsize(_NLMSGHDR_FMT)
-_GENMSGHDR_FMT: Final = "BBI"
-_GENMSGHDR_SIZE: Final = struct.calcsize(_GENMSGHDR_FMT)
-_NLA_FMT: Final = "HH"
-_NLA_SIZE: Final = struct.calcsize(_NLA_FMT)
-
-# See <linux/socket.h>
 SOL_NETLINK: Final = 270
 NETLINK_EXT_ACK: Final = 11
 
@@ -116,23 +85,29 @@ NETLINK_EXT_ACK: Final = 11
 SO_RCVBUF_FORCE: Final = 33
 
 
-def _nlmsghdr(
-    msg_len: int,
-    msg_type: int,
-    flags: int,
-    seq: int,
-    pid: int = 0,
-) -> bytes:
-    """
-    struct nlmsghdr {
-      __u32   nlmsg_len;      /* Length of message including headers */
-      __u16   nlmsg_type;     /* Generic Netlink Family (subsystem) ID */
-      __u16   nlmsg_flags;    /* Flags - request or dump */
-      __u32   nlmsg_seq;      /* Sequence number */
-      __u32   nlmsg_pid;      /* Port ID, set to 0 */
-    };
-    """
-    return struct.pack(_NLMSGHDR_FMT, msg_len, msg_type, flags, seq, pid)
+_NLMsgHdrStruct = struct.Struct(
+    b"I"  # Length of message, including header
+    b"H"  # Netlink type
+    b"H"  # Flags
+    b"I"  # Sequence number
+    b"I"  # Port id, traditionally the process id, 0 to auto-assign
+)
+
+_NLAStruct = struct.Struct(
+    b"H"  # Netlink attribute type
+    b"H"  # Netlink attribute size
+)
+
+
+class _NLMsgHdr(NamedTuple):
+    msg_len: int
+    msg_type: int
+    flags: int
+    seq: int
+    pid: int = 0
+
+    def pack(self) -> bytes:
+        return _NLMsgHdrStruct.pack(*self)
 
 
 class NLAttr(NamedTuple):
@@ -185,39 +160,24 @@ class NLMsg(NamedTuple):
 def encode_nlmsg(
     msg_type: int, flags: int, data: bytes, seqno: int, pid: int = 0
 ) -> bytes:
-    msg_len = _NLMSGHDR_SIZE + len(data)
-    header = _nlmsghdr(
+    msg_len = _NLMsgHdrStruct.size + len(data)
+    header = _NLMsgHdr(
         msg_len=msg_len,
         msg_type=msg_type,
         flags=flags,
         seq=seqno,
         pid=pid,
-    )
+    ).pack()
     return header + data
-
-
-def _genmsghdr(
-    cmd: int,
-    version: int = 1,
-    reserved: int = 0,
-) -> bytes:
-    """
-    struct genlmsghdr {
-      __u8    cmd;            /* Command, as defined by the Family */
-      __u8    version;        /* Irrelevant, set to 1 */
-      __u16   reserved;       /* Reserved, set to 0 */
-    };
-    """
-    return struct.pack(_GENMSGHDR_FMT, cmd, version, reserved)
 
 
 def _nlattr(
     nla_type: int,
     nla_data: bytes,
 ) -> bytes:
-    nla_len = _NLA_SIZE + len(nla_data)
+    nla_len = _NLAStruct.size + len(nla_data)
     padding_size = (4 - (nla_len % 4)) % 4
-    return struct.pack(_NLA_FMT, nla_len, nla_type) + nla_data + b"\x00" * padding_size
+    return _NLAStruct.pack(nla_len, nla_type) + nla_data + b"\x00" * padding_size
 
 
 def decode_nlattr_str(data: memoryview) -> str:
@@ -297,7 +257,7 @@ class NetlinkProtocol(asyncio.DatagramProtocol):
             return
 
         pid, group = addr
-        assert pid == 0, f"netlink pid shoudl be 0 but got {pid}"
+        assert pid == 0, f"netlink pid should be 0 but got {pid}"
         assert type(group) is int
         if group != 0:
             assert group & self._groups > 0
@@ -306,11 +266,13 @@ class NetlinkProtocol(asyncio.DatagramProtocol):
         data_view = memoryview(data)
         size = len(data_view)
         while pos < size:
-            msg_len, msg_type, flags, seqno, pid = struct.unpack(
-                _NLMSGHDR_FMT,
-                data_view[pos : pos + _NLMSGHDR_SIZE],
+            msg_len, msg_type, flags, seqno, pid = _NLMsgHdrStruct.unpack_from(
+                data_view,
+                pos,
             )
-            msg_data = data_view[pos + _NLMSGHDR_SIZE : pos + _NLMSGHDR_SIZE + msg_len]
+            msg_data = data_view[
+                pos + _NLMsgHdrStruct.size : pos + _NLMsgHdrStruct.size + msg_len
+            ]
 
             nlmsg = NLMsg(
                 msg_len,
@@ -407,7 +369,7 @@ def _parse_nlattrs(data: memoryview) -> Iterator[NLAttr]:
     pos = 0
     size = len(data)
     while pos < size:
-        attr_len, attr_type = struct.unpack("HH", data[pos : pos + 4])
+        attr_len, attr_type = _NLAStruct.unpack_from(data, pos)
         yield NLAttr(attr_type, data[pos + 4 : pos + attr_len])
 
         # nlattrs are 4 byte aligned

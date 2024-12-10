@@ -15,9 +15,7 @@ from aiortnetlink.rtm import RTM_GETRULE, RTM_NEWRULE
 
 __all__ = ["Rule"]
 
-# See <uapi/linux/rtnetlink.h>
-# rtnetlink families. Values up to 127 are reserved for real address
-# families, values above 128 may be used arbitrarily.
+
 RTNL_FAMILY_IPMR: Final = 128
 RTNL_FAMILY_IP6MR: Final = 129
 

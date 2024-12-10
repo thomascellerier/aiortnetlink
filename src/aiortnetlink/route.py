@@ -19,9 +19,6 @@ __all__ = [
     "Route",
 ]
 
-_RTMSG_FMT = b"BBBBBBBBI"
-_RTMSG_SIZE = struct.calcsize(_RTMSG_FMT)
-
 
 class RTAType(IntEnum):
     RTA_UNSPEC: Final = 0
@@ -79,23 +76,20 @@ class ICMPv6RouterPref(IntEnum):
     ICMPV6_ROUTER_PREF_INVALID: Final = 0x2
 
 
+_RTMsgStruct = struct.Struct(
+    b"B"  # Family
+    b"B"  # Destination length
+    b"B"  # Source length
+    b"B"  # TOS filter
+    b"B"  # Routing table id, attribute takes precedence
+    b"B"  # Protocol
+    b"B"  # Scope
+    b"B"  # Type
+    b"I"  # Flags
+)
+
+
 class RTMsg(NamedTuple):
-    """
-    struct rtmsg {
-        unsigned char rtm_family;   /* Address family of route */
-        unsigned char rtm_dst_len;  /* Length of destination */
-        unsigned char rtm_src_len;  /* Length of source */
-        unsigned char rtm_tos;      /* TOS filter */
-        unsigned char rtm_table;    /* Routing table ID;
-                                     see RTA_TABLE below */
-        unsigned char rtm_protocol; /* Routing protocol; see below */
-        unsigned char rtm_scope;    /* See below */
-        unsigned char rtm_type;     /* See below */
-
-        unsigned int  rtm_flags;
-    };
-    """
-
     family: int = 0
     dst_len: int = 0
     src_len: int = 0
@@ -108,10 +102,10 @@ class RTMsg(NamedTuple):
 
     @classmethod
     def decode[BufferT: (bytes, memoryview)](cls, data: BufferT) -> "tuple[RTMsg, int]":
-        return RTMsg(*struct.unpack(_RTMSG_FMT, data[:_RTMSG_SIZE])), _RTMSG_SIZE
+        return RTMsg(*_RTMsgStruct.unpack_from(data)), _RTMsgStruct.size
 
     def encode(self) -> bytes:
-        return struct.pack(_RTMSG_FMT, *self)
+        return _RTMsgStruct.pack(*self)
 
 
 def get_route_request() -> NetlinkRequest:

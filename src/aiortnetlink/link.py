@@ -106,8 +106,14 @@ class IFLinkMode(IntEnum):
     TESTING: Final = 2
 
 
-_IFINFOMSG_FMT: Final = b"BxHiII"
-_IFINFOMSG_SIZE: Final = struct.calcsize(_IFINFOMSG_FMT)
+IFInfoMsg: Final = struct.Struct(
+    b"B"  # Family
+    b"x"  # Padding
+    b"H"  # Type
+    b"i"  # Index
+    b"I"  # Flags
+    b"I"  # Change
+)
 
 
 def ifinfomsg(
@@ -117,18 +123,7 @@ def ifinfomsg(
     flags: int = 0,
     change: int = 0,
 ) -> bytes:
-    """
-
-    struct ifinfomsg {
-        unsigned char  ifi_family; /* AF_UNSPEC */
-        unsigned char  __ifi_pad;
-        unsigned short ifi_type;   /* Device type */
-        int            ifi_index;  /* Interface index */
-        unsigned int   ifi_flags;  /* Device flags  */
-        unsigned int   ifi_change; /* change mask */
-    };
-    """
-    return struct.pack(_IFINFOMSG_FMT, family, ifi_type, index, flags, change)
+    return IFInfoMsg.pack(family, ifi_type, index, flags, change)
 
 
 @dataclass(slots=True)
@@ -154,8 +149,8 @@ class IFLink:
     @classmethod
     def from_nlmsg(cls, msg: NLMsg) -> "IFLink":
         data = memoryview(msg.data)
-        ifi_family, ifi_type, ifi_index, ifi_flags, ifi_change = struct.unpack(
-            _IFINFOMSG_FMT, data[:_IFINFOMSG_SIZE]
+        ifi_family, ifi_type, ifi_index, ifi_flags, ifi_change = IFInfoMsg.unpack_from(
+            data
         )
 
         name: str | None = None
@@ -168,7 +163,7 @@ class IFLink:
         txqlen: int | None = None
         broadcast: str | None = None
 
-        for nlattr in msg.attrs(_IFINFOMSG_SIZE):
+        for nlattr in msg.attrs(IFInfoMsg.size):
             match nlattr.attr_type:
                 case IFLAType.IFNAME:
                     name = nlattr.as_string()
