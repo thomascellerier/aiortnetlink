@@ -325,40 +325,40 @@ async def run(args: argparse.Namespace) -> None:
             groups: set[int] = set()
 
             def link_groups() -> tuple[int, ...]:
-                return (rtm.RTNLGRP_LINK,)
+                return (rtm.RTNLGroup.LINK,)
 
             if args.link:
                 link_groups()
 
             def address_groups() -> tuple[int, ...]:
                 if args.ipv4:
-                    return (rtm.RTNLGRP_IPV4_IFADDR,)
+                    return (rtm.RTNLGroup.IPV4_IFADDR,)
                 elif args.ipv6:
-                    return (rtm.RTNLGRP_IPV6_IFADDR,)
+                    return (rtm.RTNLGroup.IPV6_IFADDR,)
                 else:
-                    return rtm.RTNLGRP_IPV4_IFADDR, rtm.RTNLGRP_IPV6_IFADDR
+                    return rtm.RTNLGroup.IPV4_IFADDR, rtm.RTNLGroup.IPV6_IFADDR
 
             if args.address:
                 groups.update(address_groups())
 
             def route_groups() -> tuple[int, ...]:
                 if args.ipv4:
-                    return (rtm.RTNLGRP_IPV4_ROUTE,)
+                    return (rtm.RTNLGroup.IPV4_ROUTE,)
                 elif args.ipv6:
-                    return (rtm.RTNLGRP_IPV6_ROUTE,)
+                    return (rtm.RTNLGroup.IPV6_ROUTE,)
                 else:
-                    return rtm.RTNLGRP_IPV4_ROUTE, rtm.RTNLGRP_IPV6_ROUTE
+                    return rtm.RTNLGroup.IPV4_ROUTE, rtm.RTNLGroup.IPV6_ROUTE
 
             if args.route:
                 groups.update(route_groups())
 
             def rule_groups() -> tuple[int, ...]:
                 if args.ipv4:
-                    return (rtm.RTNLGRP_IPV4_RULE,)
+                    return (rtm.RTNLGroup.IPV4_RULE,)
                 elif args.ipv6:
-                    return (rtm.RTNLGRP_IPV6_RULE,)
+                    return (rtm.RTNLGroup.IPV6_RULE,)
                 else:
-                    return rtm.RTNLGRP_IPV4_RULE, rtm.RTNLGRP_IPV6_RULE
+                    return rtm.RTNLGroup.IPV4_RULE, rtm.RTNLGroup.IPV6_RULE
 
             # No groups specified, listen to everything supported!
             if not groups:

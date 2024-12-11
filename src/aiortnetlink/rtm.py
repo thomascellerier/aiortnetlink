@@ -3,13 +3,7 @@ from typing import Final
 
 __all__ = [
     "RTMType",
-    "RTNLGRP_LINK",
-    "RTNLGRP_IPV4_ROUTE",
-    "RTNLGRP_IPV4_RULE",
-    "RTNLGRP_IPV4_IFADDR",
-    "RTNLGRP_IPV6_ROUTE",
-    "RTNLGRP_IPV6_RULE",
-    "RTNLGRP_IPV6_IFADDR",
+    "RTNLGroup",
 ]
 
 
@@ -31,25 +25,26 @@ class RTMType(IntEnum):
     GETRULE: Final = 34
 
 
-RTNLGRP_LINK: Final = 1
-RTNLGRP_NOTIFY: Final = 2
-RTNLGRP_NEIGH: Final = 3
-RTNLGRP_TC: Final = 4
+class RTNLGroup(IntEnum):
+    LINK: Final = 1
+    NOTIFY: Final = 2
+    NEIGH: Final = 3
+    TC: Final = 4
 
-RTNLGRP_IPV4_IFADDR: Final = 5
-RTNLGRP_IPV4_MROUTE: Final = 6
-RTNLGRP_IPV4_ROUTE: Final = 7
-RTNLGRP_IPV4_RULE: Final = 8
+    IPV4_IFADDR: Final = 5
+    IPV4_MROUTE: Final = 6
+    IPV4_ROUTE: Final = 7
+    IPV4_RULE: Final = 8
 
-RTNLGRP_IPV6_IFADDR: Final = 9
-RTNLGRP_IPV6_MROUTE: Final = 10
-RTNLGRP_IPV6_ROUTE: Final = 11
-RTNLGRP_IPV6_IFINFO: Final = 12
+    IPV6_IFADDR: Final = 9
+    IPV6_MROUTE: Final = 10
+    IPV6_ROUTE: Final = 11
+    IPV6_IFINFO: Final = 12
 
-RTNLGRP_NOP2: Final = 13
-RTNLGRP_DECnet_ROUTE: Final = 14
-RTNLGRP_DECnet_RULE: Final = 15
-RTNLGRP_NOP4: Final = 16
+    NOP2: Final = 13
+    DECnet_ROUTE: Final = 14
+    DECnet_RULE: Final = 15
+    NOP4: Final = 16
 
-RTNLGRP_IPV6_PREFIX: Final = 17
-RTNLGRP_IPV6_RULE: Final = 18
+    IPV6_PREFIX: Final = 17
+    IPV6_RULE: Final = 18
