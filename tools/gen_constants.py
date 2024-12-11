@@ -259,7 +259,7 @@ from typing import Final
         for constant_name, constant_value in values.items():
             if type_spec.flag:
                 bit_shift = constant_value.bit_length() - 1
-                if constant_value == (1 << bit_shift):
+                if constant_value > 0 and constant_value == (1 << bit_shift):
                     # If the flag can be represented a bit shift do so
                     value_str = f"1 << {bit_shift}"
                 else:
