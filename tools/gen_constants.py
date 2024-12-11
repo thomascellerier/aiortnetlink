@@ -60,19 +60,64 @@ route_types = [
     "RTN_XRESOLVE",
 ]
 
+ifla_types = [
+    "IFLA_UNSPEC",
+    "IFLA_ADDRESS",
+    "IFLA_BROADCAST",
+    "IFLA_IFNAME",
+    "IFLA_MTU",
+    "IFLA_LINK",
+    "IFLA_QDISC",
+    "IFLA_STATS",
+    "IFLA_COST",
+    "IFLA_PRIORITY",
+    "IFLA_MASTER",
+    "IFLA_WIRELESS",
+    "IFLA_PROTINFO",
+    "IFLA_TXQLEN",
+    "IFLA_MAP",
+    "IFLA_WEIGHT",
+    "IFLA_OPERSTATE",
+    "IFLA_LINKMODE",
+    "IFLA_LINKINFO",
+    "IFLA_NET_NS_PID",
+    "IFLA_IFALIAS",
+    "IFLA_NUM_VF",
+    "IFLA_VFINFO_LIST",
+    "IFLA_STATS64",
+    "IFLA_VF_PORTS",
+    "IFLA_PORT_SELF",
+    "IFLA_AF_SPEC",
+    "IFLA_GROUP",
+    "IFLA_NET_NS_FD",
+    "IFLA_EXT_MASK",
+    "IFLA_PROMISCUITY",
+    "IFLA_NUM_TX_QUEUES",
+    "IFLA_NUM_RX_QUEUES",
+    "IFLA_CARRIER",
+    "IFLA_PHYS_PORT_ID",
+    "IFLA_CARRIER_CHANGES",
+    "IFLA_PHYS_SWITCH_ID",
+    "IFLA_LINK_NETNSID",
+    "IFLA_PHYS_PORT_NAME",
+    "IFLA_PROTO_DOWN",
+]
+
 
 @dataclass
 class TypeSpec:
     name: str
+    prefix: str
     constants: list[str]
     is_macro: bool = False
     flag: bool = False
 
 
 constants = [
-    TypeSpec("NLFamily", netlink_families, is_macro=True),
-    TypeSpec("NLFlag", netlink_flags, is_macro=True, flag=True),
-    TypeSpec("RTNType", route_types),
+    TypeSpec("NLFamily", "NETLINK_", netlink_families, is_macro=True),
+    TypeSpec("NLFlag", "NLM_F_", netlink_flags, is_macro=True, flag=True),
+    TypeSpec("RTNType", "RTN_", route_types),
+    TypeSpec("IFLAType", "IFLA_", ifla_types),
 ]
 
 
@@ -145,7 +190,7 @@ from typing import Final
                 value_str = hex(constant_value)
             else:
                 value_str = str(constant_value)
-            print(f"    {constant_name}: Final = {value_str}")
+            print(f"    {constant_name.removeprefix(type_spec.prefix)}: Final = {value_str}")
         print("\n")
 
 

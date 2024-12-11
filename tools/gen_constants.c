@@ -117,5 +117,47 @@ int main(int argc, char *argv[]) {
     printf("RTNType RTN_NAT %d\n", RTN_NAT);
     printf("RTNType RTN_XRESOLVE %d\n", RTN_XRESOLVE);
 
+    // IFLAType
+    printf("IFLAType IFLA_UNSPEC %d\n", IFLA_UNSPEC);
+    printf("IFLAType IFLA_ADDRESS %d\n", IFLA_ADDRESS);
+    printf("IFLAType IFLA_BROADCAST %d\n", IFLA_BROADCAST);
+    printf("IFLAType IFLA_IFNAME %d\n", IFLA_IFNAME);
+    printf("IFLAType IFLA_MTU %d\n", IFLA_MTU);
+    printf("IFLAType IFLA_LINK %d\n", IFLA_LINK);
+    printf("IFLAType IFLA_QDISC %d\n", IFLA_QDISC);
+    printf("IFLAType IFLA_STATS %d\n", IFLA_STATS);
+    printf("IFLAType IFLA_COST %d\n", IFLA_COST);
+    printf("IFLAType IFLA_PRIORITY %d\n", IFLA_PRIORITY);
+    printf("IFLAType IFLA_MASTER %d\n", IFLA_MASTER);
+    printf("IFLAType IFLA_WIRELESS %d\n", IFLA_WIRELESS);
+    printf("IFLAType IFLA_PROTINFO %d\n", IFLA_PROTINFO);
+    printf("IFLAType IFLA_TXQLEN %d\n", IFLA_TXQLEN);
+    printf("IFLAType IFLA_MAP %d\n", IFLA_MAP);
+    printf("IFLAType IFLA_WEIGHT %d\n", IFLA_WEIGHT);
+    printf("IFLAType IFLA_OPERSTATE %d\n", IFLA_OPERSTATE);
+    printf("IFLAType IFLA_LINKMODE %d\n", IFLA_LINKMODE);
+    printf("IFLAType IFLA_LINKINFO %d\n", IFLA_LINKINFO);
+    printf("IFLAType IFLA_NET_NS_PID %d\n", IFLA_NET_NS_PID);
+    printf("IFLAType IFLA_IFALIAS %d\n", IFLA_IFALIAS);
+    printf("IFLAType IFLA_NUM_VF %d\n", IFLA_NUM_VF);
+    printf("IFLAType IFLA_VFINFO_LIST %d\n", IFLA_VFINFO_LIST);
+    printf("IFLAType IFLA_STATS64 %d\n", IFLA_STATS64);
+    printf("IFLAType IFLA_VF_PORTS %d\n", IFLA_VF_PORTS);
+    printf("IFLAType IFLA_PORT_SELF %d\n", IFLA_PORT_SELF);
+    printf("IFLAType IFLA_AF_SPEC %d\n", IFLA_AF_SPEC);
+    printf("IFLAType IFLA_GROUP %d\n", IFLA_GROUP);
+    printf("IFLAType IFLA_NET_NS_FD %d\n", IFLA_NET_NS_FD);
+    printf("IFLAType IFLA_EXT_MASK %d\n", IFLA_EXT_MASK);
+    printf("IFLAType IFLA_PROMISCUITY %d\n", IFLA_PROMISCUITY);
+    printf("IFLAType IFLA_NUM_TX_QUEUES %d\n", IFLA_NUM_TX_QUEUES);
+    printf("IFLAType IFLA_NUM_RX_QUEUES %d\n", IFLA_NUM_RX_QUEUES);
+    printf("IFLAType IFLA_CARRIER %d\n", IFLA_CARRIER);
+    printf("IFLAType IFLA_PHYS_PORT_ID %d\n", IFLA_PHYS_PORT_ID);
+    printf("IFLAType IFLA_CARRIER_CHANGES %d\n", IFLA_CARRIER_CHANGES);
+    printf("IFLAType IFLA_PHYS_SWITCH_ID %d\n", IFLA_PHYS_SWITCH_ID);
+    printf("IFLAType IFLA_LINK_NETNSID %d\n", IFLA_LINK_NETNSID);
+    printf("IFLAType IFLA_PHYS_PORT_NAME %d\n", IFLA_PHYS_PORT_NAME);
+    printf("IFLAType IFLA_PROTO_DOWN %d\n", IFLA_PROTO_DOWN);
+
     return 0;
 }
