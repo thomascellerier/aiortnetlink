@@ -191,6 +191,14 @@ constants = [
 
 
 def generate_program(name: str = "gen_constants") -> Path:
+    """
+    Generate program that prints out linux user API constant names with their matching value.
+    The generated program is subject to the license of these headers.
+
+    Note that linux user API header files are subject to the Linux-syscall-note exception, such that a program
+    can use the includes without it having to be subject to the GPL itself.
+    See https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/LICENSES/exceptions/Linux-syscall-note
+    """
     program = (Path(__file__).parent.resolve() / name).with_suffix(".c")
     with open(program, "wt") as f:
         f.write("""\
@@ -228,6 +236,12 @@ def compile_binary(program: Path) -> Path:
 
 
 def run_binary(binary: Path) -> dict[str, dict[str, int]]:
+    """
+    Run the generated binary and capture its output into a dictionary.
+
+    Note that it is important that the generated binary be run as a standalone program to respect the licensing
+    of the generated program using linux include headers.
+    """
     p = subprocess.run([str(binary.absolute())], check=True, capture_output=True)
     assert p.stdout
 
