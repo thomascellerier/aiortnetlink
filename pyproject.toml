@@ -53,3 +53,4 @@ mypy = "uv run --group lint mypy src tests tools"
 lint = ["mypy", "ruff-check"]
 tests = "env PYTHONPATH=src uv run --group test pytest -v tests"
 test = ["lint", "tests", "ruff-fmt-check"]
+generate-constants = "tools/gen_constants.py"
