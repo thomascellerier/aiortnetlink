@@ -47,11 +47,11 @@ class IFAType(IntEnum):
         return f"IFA_{self.name}"
 
 
-class IFAFlags(IntEnum):
-    SECONDARY: Final = 0x01
-    NODAD: Final = 0x02
-    OPTIMISTIC: Final = 0x04
-    DADFAILED: Final = 0x08
+class IFAFlag(IntEnum):
+    SECONDARY: Final = 0x1
+    NODAD: Final = 0x2
+    OPTIMISTIC: Final = 0x4
+    DADFAILED: Final = 0x8
     HOMEADDRESS: Final = 0x10
     DEPRECATED: Final = 0x20
     TENTATIVE: Final = 0x40
@@ -60,6 +60,10 @@ class IFAFlags(IntEnum):
     NOPREFIXROUTE: Final = 0x200
     MCAUTOJOIN: Final = 0x400
     STABLE_PRIVACY: Final = 0x800
+
+    @property
+    def constant_name(self) -> str:
+        return f"IFA_F_{self.name}"
 
 
 _IFAddrStruct = struct.Struct(

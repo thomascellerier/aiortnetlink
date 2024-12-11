@@ -174,6 +174,20 @@ int main(int argc, char *argv[]) {
     printf("IFAType IFA_TARGET_NETNSID %d\n", IFA_TARGET_NETNSID);
     printf("IFAType IFA_PROTO %d\n", IFA_PROTO);
 
+    // IFAFlag
+    printf("IFAFlag IFA_F_SECONDARY %d\n", IFA_F_SECONDARY);
+    printf("IFAFlag IFA_F_NODAD %d\n", IFA_F_NODAD);
+    printf("IFAFlag IFA_F_OPTIMISTIC %d\n", IFA_F_OPTIMISTIC);
+    printf("IFAFlag IFA_F_DADFAILED %d\n", IFA_F_DADFAILED);
+    printf("IFAFlag IFA_F_HOMEADDRESS %d\n", IFA_F_HOMEADDRESS);
+    printf("IFAFlag IFA_F_DEPRECATED %d\n", IFA_F_DEPRECATED);
+    printf("IFAFlag IFA_F_TENTATIVE %d\n", IFA_F_TENTATIVE);
+    printf("IFAFlag IFA_F_PERMANENT %d\n", IFA_F_PERMANENT);
+    printf("IFAFlag IFA_F_MANAGETEMPADDR %d\n", IFA_F_MANAGETEMPADDR);
+    printf("IFAFlag IFA_F_NOPREFIXROUTE %d\n", IFA_F_NOPREFIXROUTE);
+    printf("IFAFlag IFA_F_MCAUTOJOIN %d\n", IFA_F_MCAUTOJOIN);
+    printf("IFAFlag IFA_F_STABLE_PRIVACY %d\n", IFA_F_STABLE_PRIVACY);
+
     // ICMPv6RouterPref
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_LOW %d\n", ICMPV6_ROUTER_PREF_LOW);
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_MEDIUM %d\n", ICMPV6_ROUTER_PREF_MEDIUM);

@@ -118,8 +118,23 @@ ifa_types = [
     "IFA_PROTO",
 ]
 
+ifa_flags = [
+    "IFA_F_SECONDARY",
+    "IFA_F_NODAD",
+    "IFA_F_OPTIMISTIC",
+    "IFA_F_DADFAILED",
+    "IFA_F_HOMEADDRESS",
+    "IFA_F_DEPRECATED",
+    "IFA_F_TENTATIVE",
+    "IFA_F_PERMANENT",
+    "IFA_F_MANAGETEMPADDR",
+    "IFA_F_NOPREFIXROUTE",
+    "IFA_F_MCAUTOJOIN",
+    "IFA_F_STABLE_PRIVACY",
+]
 
-icmpv6_router_pref = [
+
+icmpv6_router_prefs = [
     "ICMPV6_ROUTER_PREF_LOW",
     "ICMPV6_ROUTER_PREF_MEDIUM",
     "ICMPV6_ROUTER_PREF_HIGH",
@@ -142,10 +157,11 @@ constants = [
     TypeSpec("RTNType", "RTN_", route_types),
     TypeSpec("IFLAType", "IFLA_", ifla_types),
     TypeSpec("IFAType", "IFA_", ifa_types),
+    TypeSpec("IFAFlag", "IFA_F_", ifa_flags, flag=True),
     TypeSpec(
         "ICMPv6RouterPref",
         "ICMPV6_ROUTER_PREF_",
-        icmpv6_router_pref,
+        icmpv6_router_prefs,
         flag=True,
     ),
 ]
