@@ -89,6 +89,7 @@ def generate_program(name: str = "gen_constants") -> Path:
 int main(int argc, char *argv[]) {
 """)
         for type_spec in constants:
+            f.write(f"    // {type_spec.name}\n")
             for constant in type_spec.constants:
                 if type_spec.is_macro:
                     f.write(f"#ifdef {constant}\n")
@@ -97,6 +98,8 @@ int main(int argc, char *argv[]) {
                 )
                 if type_spec.is_macro:
                     f.write("#endif\n")
+            f.write("\n")
+        f.write("    return 0;\n")
         f.write("}\n")
     return program
 

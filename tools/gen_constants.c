@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
+    // NLFamily
 #ifdef NETLINK_ROUTE
     printf("NLFamily NETLINK_ROUTE %d\n", NETLINK_ROUTE);
 #endif
@@ -63,6 +64,8 @@ int main(int argc, char *argv[]) {
 #ifdef NETLINK_CRYPTO
     printf("NLFamily NETLINK_CRYPTO %d\n", NETLINK_CRYPTO);
 #endif
+
+    // NLFlag
 #ifdef NLM_F_REQUEST
     printf("NLFlag NLM_F_REQUEST %d\n", NLM_F_REQUEST);
 #endif
@@ -99,6 +102,8 @@ int main(int argc, char *argv[]) {
 #ifdef NLM_F_APPEND
     printf("NLFlag NLM_F_APPEND %d\n", NLM_F_APPEND);
 #endif
+
+    // RTNType
     printf("RTNType RTN_UNSPEC %d\n", RTN_UNSPEC);
     printf("RTNType RTN_UNICAST %d\n", RTN_UNICAST);
     printf("RTNType RTN_LOCAL %d\n", RTN_LOCAL);
@@ -111,4 +116,6 @@ int main(int argc, char *argv[]) {
     printf("RTNType RTN_THROW %d\n", RTN_THROW);
     printf("RTNType RTN_NAT %d\n", RTN_NAT);
     printf("RTNType RTN_XRESOLVE %d\n", RTN_XRESOLVE);
+
+    return 0;
 }
