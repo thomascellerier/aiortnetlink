@@ -117,7 +117,7 @@ def add_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
             prefixlen=address.network.prefixlen,
             scope=0,  # global
             if_index=ifi_index,
-            flags=IFAFlags.PERMANENT,
+            flags=IFAFlag.PERMANENT,
         ).pack(),
         NLAttr.from_ipaddress(IFAType.LOCAL, address.ip),
     ]
@@ -264,9 +264,9 @@ class IFAddr:
         parts.extend(["scope", scope_id_to_name(self.scope) or str(self.scope)])
 
         flags = []
-        if not (self.flags & IFAFlags.PERMANENT):
+        if not (self.flags & IFAFlag.PERMANENT):
             flags.append("dynamic")
-        for flag in IFAFlags:
+        for flag in IFAFlag:
             if self.flags & flag:
                 flags.append(flag.name.lower())
         parts.extend(flags)
