@@ -23,7 +23,7 @@ from aiortnetlink.netlink import (
     NLMsg,
     encode_nlattr_str,
 )
-from aiortnetlink.rtm import RTM_DELADDR, RTM_GETADDR, RTM_NEWADDR
+from aiortnetlink.rtm import RTMType
 
 __all__ = ["IFAddr"]
 
@@ -94,7 +94,7 @@ def get_addr_request(ifi_index: int = 0, ifi_name: str | None = None) -> Netlink
     elif ifi_index == 0:
         flags |= NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkRequest(RTM_GETADDR, flags, data, RTM_NEWADDR)
+    return NetlinkRequest(RTMType.GETADDR, flags, data, RTMType.NEWADDR)
 
 
 IPAddress = IPv4Address | IPv6Address
@@ -118,7 +118,7 @@ def add_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
         NLAttr.from_ipaddress(IFAType.LOCAL, address.ip),
     ]
     data = b"".join(parts)
-    return NetlinkRequest(RTM_NEWADDR, flags, data, RTM_NEWADDR)
+    return NetlinkRequest(RTMType.NEWADDR, flags, data, RTMType.NEWADDR)
 
 
 def del_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
@@ -138,7 +138,7 @@ def del_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
         NLAttr.from_ipaddress(IFAType.LOCAL, address.ip),
     ]
     data = b"".join(parts)
-    return NetlinkRequest(RTM_DELADDR, flags, data, RTM_NEWADDR)
+    return NetlinkRequest(RTMType.DELADDR, flags, data, RTMType.NEWADDR)
 
 
 _UINT32_MAX = (2**32) - 1

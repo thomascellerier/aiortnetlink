@@ -10,7 +10,7 @@ from aiortnetlink.netlink import (
     NLMsg,
     encode_nlattr_str,
 )
-from aiortnetlink.rtm import RTM_GETLINK, RTM_NEWLINK
+from aiortnetlink.rtm import RTMType
 
 __all__ = ["IFLink", "IFLAType", "Flags", "ifinfomsg"]
 
@@ -267,4 +267,4 @@ def get_link_request(ifi_index: int = 0, ifi_name: str | None = None) -> Netlink
     elif ifi_index == 0:
         flags |= NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkRequest(RTM_GETLINK, flags, data, RTM_NEWLINK)
+    return NetlinkRequest(RTMType.GETLINK, flags, data, RTMType.NEWLINK)

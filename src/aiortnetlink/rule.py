@@ -7,7 +7,7 @@ from typing import Callable, Final, Literal
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkRequest, NLMsg
 from aiortnetlink.route import RTMsg, RTNType
-from aiortnetlink.rtm import RTM_GETRULE, RTM_NEWRULE
+from aiortnetlink.rtm import RTMType
 
 __all__ = ["Rule"]
 
@@ -43,7 +43,7 @@ def get_rule_request() -> NetlinkRequest:
     parts = [RTMsg().encode()]
     flags = NLM_F_REQUEST | NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkRequest(RTM_GETRULE, flags, data, RTM_NEWRULE)
+    return NetlinkRequest(RTMType.GETRULE, flags, data, RTMType.NEWRULE)
 
 
 @dataclass(slots=True)

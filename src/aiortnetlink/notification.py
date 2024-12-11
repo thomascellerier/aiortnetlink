@@ -96,28 +96,28 @@ def decode_notification(msg: NLMsg, group: int) -> NetlinkNotification:
     # This assumes that netlink notifications only every set one group bit.
     group_value = group.bit_length()
     match msg.msg_type:
-        case rtm.RTM_NEWLINK:
+        case rtm.RTMType.NEWLINK:
             assert group_value == rtm.RTNLGRP_LINK
             return NewLinkNotification(iflink_type().from_nlmsg(msg))
-        case rtm.RTM_DELLINK:
+        case rtm.RTMType.DELLINK:
             assert group_value == rtm.RTNLGRP_LINK
             return DelLinkNotification(iflink_type().from_nlmsg(msg))
-        case rtm.RTM_NEWADDR:
+        case rtm.RTMType.NEWADDR:
             assert group_value in (rtm.RTNLGRP_IPV4_IFADDR, rtm.RTNLGRP_IPV6_IFADDR)
             return NewAddrNotification(ifaddr_type().from_nlmsg(msg))
-        case rtm.RTM_DELADDR:
+        case rtm.RTMType.DELADDR:
             assert group_value in (rtm.RTNLGRP_IPV4_IFADDR, rtm.RTNLGRP_IPV6_IFADDR)
             return DelAddrNotification(ifaddr_type().from_nlmsg(msg))
-        case rtm.RTM_NEWROUTE:
+        case rtm.RTMType.NEWROUTE:
             assert group_value in (rtm.RTNLGRP_IPV4_ROUTE, rtm.RTNLGRP_IPV6_ROUTE)
             return NewRouteNotification(route_type().from_nlmsg(msg))
-        case rtm.RTM_DELROUTE:
+        case rtm.RTMType.DELROUTE:
             assert group_value in (rtm.RTNLGRP_IPV4_ROUTE, rtm.RTNLGRP_IPV6_ROUTE)
             return DelRouteNotification(route_type().from_nlmsg(msg))
-        case rtm.RTM_NEWRULE:
+        case rtm.RTMType.NEWRULE:
             assert group_value in (rtm.RTNLGRP_IPV4_RULE, rtm.RTNLGRP_IPV6_RULE)
             return NewRuleNotification(rule_type().from_nlmsg(msg))
-        case rtm.RTM_DELRULE:
+        case rtm.RTMType.DELRULE:
             assert group_value in (rtm.RTNLGRP_IPV4_RULE, rtm.RTNLGRP_IPV6_RULE)
             return DelRuleNotification(rule_type().from_nlmsg(msg))
         case _:

@@ -7,7 +7,7 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Callable, Final, Literal, NamedTuple
 
 from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkRequest, NLMsg
-from aiortnetlink.rtm import RTM_GETROUTE, RTM_NEWROUTE
+from aiortnetlink.rtm import RTMType
 
 __all__ = [
     "RTNType",
@@ -109,7 +109,7 @@ def get_route_request() -> NetlinkRequest:
     parts = [RTMsg().encode()]
     flags = NLM_F_REQUEST | NLM_F_DUMP
     data = b"".join(parts)
-    return NetlinkRequest(RTM_GETROUTE, flags, data, RTM_NEWROUTE)
+    return NetlinkRequest(RTMType.GETROUTE, flags, data, RTMType.NEWROUTE)
 
 
 @dataclass(slots=True)

@@ -1,18 +1,8 @@
+from enum import IntEnum
 from typing import Final
 
 __all__ = [
-    "RTM_NEWLINK",
-    "RTM_DELLINK",
-    "RTM_GETLINK",
-    "RTM_NEWADDR",
-    "RTM_DELADDR",
-    "RTM_GETADDR",
-    "RTM_NEWROUTE",
-    "RTM_GETROUTE",
-    "RTM_DELROUTE",
-    "RTM_NEWRULE",
-    "RTM_DELRULE",
-    "RTM_GETRULE",
+    "RTMType",
     "RTNLGRP_LINK",
     "RTNLGRP_IPV4_ROUTE",
     "RTNLGRP_IPV4_RULE",
@@ -22,21 +12,24 @@ __all__ = [
     "RTNLGRP_IPV6_IFADDR",
 ]
 
-RTM_NEWLINK: Final = 16
-RTM_DELLINK: Final = 17
-RTM_GETLINK: Final = 18
 
-RTM_NEWADDR: Final = 20
-RTM_DELADDR: Final = 21
-RTM_GETADDR: Final = 22
+class RTMType(IntEnum):
+    NEWLINK: Final = 16
+    DELLINK: Final = 17
+    GETLINK: Final = 18
 
-RTM_NEWROUTE: Final = 24
-RTM_DELROUTE: Final = 25
-RTM_GETROUTE: Final = 26
+    NEWADDR: Final = 20
+    DELADDR: Final = 21
+    GETADDR: Final = 22
 
-RTM_NEWRULE: Final = 32
-RTM_DELRULE: Final = 33
-RTM_GETRULE: Final = 34
+    NEWROUTE: Final = 24
+    DELROUTE: Final = 25
+    GETROUTE: Final = 26
+
+    NEWRULE: Final = 32
+    DELRULE: Final = 33
+    GETRULE: Final = 34
+
 
 RTNLGRP_LINK: Final = 1
 RTNLGRP_NOTIFY: Final = 2
