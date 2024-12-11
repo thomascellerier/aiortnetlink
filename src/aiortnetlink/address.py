@@ -28,7 +28,7 @@ from aiortnetlink.rtm import RTM_DELADDR, RTM_GETADDR, RTM_NEWADDR
 __all__ = ["IFAddr"]
 
 
-class IFA_Type(IntEnum):
+class IFAType(IntEnum):
     UNSPEC: Final = 0
     ADDRESS: Final = 1
     LOCAL: Final = 2
@@ -47,7 +47,7 @@ class IFA_Type(IntEnum):
         return f"IFA_{self.name}"
 
 
-class IFA_Flags(IntEnum):
+class IFAFlags(IntEnum):
     SECONDARY: Final = 0x01
     NODAD: Final = 0x02
     OPTIMISTIC: Final = 0x04
@@ -90,7 +90,7 @@ def get_addr_request(ifi_index: int = 0, ifi_name: str | None = None) -> Netlink
     parts = [IFAddrMsg(if_index=ifi_index).pack()]
     flags = NLM_F_REQUEST
     if ifi_name is not None:
-        parts.append(encode_nlattr_str(IFA_Type.LABEL, ifi_name))
+        parts.append(encode_nlattr_str(IFAType.LABEL, ifi_name))
     elif ifi_index == 0:
         flags |= NLM_F_DUMP
     data = b"".join(parts)
@@ -113,9 +113,9 @@ def add_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
             prefixlen=address.network.prefixlen,
             scope=0,  # global
             if_index=ifi_index,
-            flags=IFA_Flags.PERMANENT,
+            flags=IFAFlags.PERMANENT,
         ).pack(),
-        NLAttr.from_ipaddress(IFA_Type.LOCAL, address.ip),
+        NLAttr.from_ipaddress(IFAType.LOCAL, address.ip),
     ]
     data = b"".join(parts)
     return NetlinkRequest(RTM_NEWADDR, flags, data, RTM_NEWADDR)
@@ -135,7 +135,7 @@ def del_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
             if_index=ifi_index,
             flags=0,
         ).pack(),
-        NLAttr.from_ipaddress(IFA_Type.LOCAL, address.ip),
+        NLAttr.from_ipaddress(IFAType.LOCAL, address.ip),
     ]
     data = b"".join(parts)
     return NetlinkRequest(RTM_DELADDR, flags, data, RTM_NEWADDR)
@@ -206,15 +206,15 @@ class IFAddr:
 
         for nlattr in msg.attrs(size):
             match nlattr.attr_type:
-                case IFA_Type.ADDRESS:
+                case IFAType.ADDRESS:
                     address = nlattr.as_ipaddress()
-                case IFA_Type.BROADCAST:
+                case IFAType.BROADCAST:
                     broadcast = nlattr.as_ipaddress()
-                case IFA_Type.LABEL:
+                case IFAType.LABEL:
                     label = nlattr.as_string()
-                case IFA_Type.FLAGS:
+                case IFAType.FLAGS:
                     flags = nlattr.as_int()
-                case IFA_Type.CACHEINFO:
+                case IFAType.CACHEINFO:
                     cache_info = IFACacheInfo.decode(nlattr.data)
                 case _:
                     # TODO: Handle remaining attribute types like IFA_LOCAL, IFA_UNSPEC
@@ -222,7 +222,7 @@ class IFAddr:
 
         if address is None:
             raise NetlinkValueError(
-                f"Invalid netlink address, missing {IFA_Type.ADDRESS.attr_name} attribute"
+                f"Invalid netlink address, missing {IFAType.ADDRESS.attr_name} attribute"
             )
 
         return IFAddr(
@@ -260,9 +260,9 @@ class IFAddr:
         parts.extend(["scope", scope_id_to_name(self.scope) or str(self.scope)])
 
         flags = []
-        if not (self.flags & IFA_Flags.PERMANENT):
+        if not (self.flags & IFAFlags.PERMANENT):
             flags.append("dynamic")
-        for flag in IFA_Flags:
+        for flag in IFAFlags:
             if self.flags & flag:
                 flags.append(flag.name.lower())
         parts.extend(flags)

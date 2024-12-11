@@ -17,26 +17,26 @@ RTNL_FAMILY_IP6MR: Final = 129
 
 
 class FRAType(IntEnum):
-    FRA_UNSPEC: Final = 0
-    FRA_DST: Final = 1
-    FRA_SRC: Final = 2
-    FRA_IIFNAME: Final = 3
-    FRA_GOTO: Final = 4
-    FRA_UNUSED2: Final = 5
-    FRA_PRIORITY: Final = 6
-    FRA_UNUSED3: Final = 7
-    FRA_UNUSED4: Final = 8
-    FRA_UNUSED5: Final = 9
-    FRA_FWMARK: Final = 10
-    FRA_FLOW: Final = 11
-    FRA_UNUSED6: Final = 12
-    FRA_SUPPRESS_IFGROUP: Final = 12
-    FRA_SUPPRESS_PREFIXLEN: Final = 13
-    FRA_TABLE: Final = 14
-    FRA_FWMASK: Final = 15
-    FRA_OIFNAME: Final = 16
-    FRA_UID_START: Final = 17
-    FRA_UID_END: Final = 18
+    UNSPEC: Final = 0
+    DST: Final = 1
+    SRC: Final = 2
+    IIFNAME: Final = 3
+    GOTO: Final = 4
+    UNUSED2: Final = 5
+    PRIORITY: Final = 6
+    UNUSED3: Final = 7
+    UNUSED4: Final = 8
+    UNUSED5: Final = 9
+    FWMARK: Final = 10
+    FLOW: Final = 11
+    UNUSED6: Final = 12
+    SUPPRESS_IFGROUP: Final = 12
+    SUPPRESS_PREFIXLEN: Final = 13
+    TABLE: Final = 14
+    FWMASK: Final = 15
+    OIFNAME: Final = 16
+    UID_START: Final = 17
+    UID_END: Final = 18
 
 
 def get_rule_request() -> NetlinkRequest:
@@ -90,19 +90,19 @@ class Rule:
 
         for nlattr in msg.attrs(rtm_size):
             match nlattr.attr_type:
-                case FRAType.FRA_IIFNAME:
+                case FRAType.IIFNAME:
                     iif_name = nlattr.as_string()
-                case FRAType.FRA_OIFNAME:
+                case FRAType.OIFNAME:
                     oif_name = nlattr.as_string()
-                case FRAType.FRA_DST:
+                case FRAType.DST:
                     dst = nlattr.as_ipaddress()
-                case FRAType.FRA_SRC:
+                case FRAType.SRC:
                     src = nlattr.as_ipaddress()
-                case FRAType.FRA_FWMARK:
+                case FRAType.FWMARK:
                     fwmark = nlattr.as_int()
-                case FRAType.FRA_FWMASK:
+                case FRAType.FWMASK:
                     fwmask = nlattr.as_int()
-                case FRAType.FRA_PRIORITY:
+                case FRAType.PRIORITY:
                     priority = nlattr.as_int()
                 case _:
                     # TODO: Parse remaining nlattrs.
@@ -139,8 +139,8 @@ class Rule:
     ) -> str:
         parts: list[str] = []
 
-        if self.rtm_type != RTNType.RTN_UNICAST:
-            rtm_type = RTNType(self.rtm_type).name.removeprefix("RTN_").lower()
+        if self.rtm_type != RTNType.UNICAST:
+            rtm_type = RTNType(self.rtm_type).name.lower()
             parts.append(rtm_type)
 
         if self.dst:

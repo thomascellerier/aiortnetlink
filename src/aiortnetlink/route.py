@@ -10,6 +10,7 @@ from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkRequest, NLMs
 from aiortnetlink.rtm import RTM_GETROUTE, RTM_NEWROUTE
 
 __all__ = [
+    "RTNType",
     "RTMsg",
     "get_route_request",
     "Route",
@@ -17,59 +18,59 @@ __all__ = [
 
 
 class RTAType(IntEnum):
-    RTA_UNSPEC: Final = 0
-    RTA_DST: Final = 1
-    RTA_SRC: Final = 2
-    RTA_IIF: Final = 3
-    RTA_OIF: Final = 4
-    RTA_GATEWAY: Final = 5
-    RTA_PRIORITY: Final = 6
-    RTA_PREFSRC: Final = 7
-    RTA_METRICS: Final = 8
-    RTA_MULTIPATH: Final = 9
-    RTA_PROTOINFO: Final = 10  # no longer used
-    RTA_FLOW: Final = 11
-    RTA_CACHEINFO: Final = 12
-    RTA_SESSION: Final = 13  # no longer used
-    RTA_MP_ALGO: Final = 14  # no longer used
-    RTA_TABLE: Final = 15
-    RTA_MARK: Final = 16
-    RTA_MFC_STATS: Final = 17
-    RTA_VIA: Final = 18
-    RTA_NEWDST: Final = 19
-    RTA_PREF: Final = 20
-    RTA_ENCAP_TYPE: Final = 21
-    RTA_ENCAP: Final = 22
-    RTA_EXPIRES: Final = 23
-    RTA_PAD: Final = 24
-    RTA_UID: Final = 25
-    RTA_TTL_PROPAGATE: Final = 26
-    RTA_IP_PROTO: Final = 27
-    RTA_SPORT: Final = 28
-    RTA_DPORT: Final = 29
-    RTA_NH_ID: Final = 30
+    UNSPEC: Final = 0
+    DST: Final = 1
+    SRC: Final = 2
+    IIF: Final = 3
+    OIF: Final = 4
+    GATEWAY: Final = 5
+    PRIORITY: Final = 6
+    PREFSRC: Final = 7
+    METRICS: Final = 8
+    MULTIPATH: Final = 9
+    PROTOINFO: Final = 10  # no longer used
+    FLOW: Final = 11
+    CACHEINFO: Final = 12
+    SESSION: Final = 13  # no longer used
+    MP_ALGO: Final = 14  # no longer used
+    TABLE: Final = 15
+    MARK: Final = 16
+    MFC_STATS: Final = 17
+    VIA: Final = 18
+    NEWDST: Final = 19
+    PREF: Final = 20
+    ENCAP_TYPE: Final = 21
+    ENCAP: Final = 22
+    EXPIRES: Final = 23
+    PAD: Final = 24
+    UID: Final = 25
+    TTL_PROPAGATE: Final = 26
+    IP_PROTO: Final = 27
+    SPORT: Final = 28
+    DPORT: Final = 29
+    NH_ID: Final = 30
 
 
 class RTNType(IntEnum):
-    RTN_UNSPEC: Final = 0
-    RTN_UNICAST: Final = 1
-    RTN_LOCAL: Final = 2
-    RTN_BROADCAST: Final = 3
-    RTN_ANYCAST: Final = 4
-    RTN_MULTICAST: Final = 5
-    RTN_BLACKHOLE: Final = 6
-    RTN_UNREACHABLE: Final = 7
-    RTN_PROHIBIT: Final = 8
-    RTN_THROW: Final = 9
-    RTN_NAT: Final = 10
-    RTN_XRESOLVE: Final = 11
+    UNSPEC: Final = 0
+    UNICAST: Final = 1
+    LOCAL: Final = 2
+    BROADCAST: Final = 3
+    ANYCAST: Final = 4
+    MULTICAST: Final = 5
+    BLACKHOLE: Final = 6
+    UNREACHABLE: Final = 7
+    PROHIBIT: Final = 8
+    THROW: Final = 9
+    NAT: Final = 10
+    XRESOLVE: Final = 11
 
 
 class ICMPv6RouterPref(IntEnum):
-    ICMPV6_ROUTER_PREF_LOW: Final = 0x3
-    ICMPV6_ROUTER_PREF_MEDIUM: Final = 0x0
-    ICMPV6_ROUTER_PREF_HIGH: Final = 0x1
-    ICMPV6_ROUTER_PREF_INVALID: Final = 0x2
+    LOW: Final = 0x3
+    MEDIUM: Final = 0x0
+    HIGH: Final = 0x1
+    INVALID: Final = 0x2
 
 
 _RTMsgStruct = struct.Struct(
@@ -147,7 +148,7 @@ class Route:
         data = memoryview(msg.data)
         rtm, rtm_size = RTMsg.decode(data)
 
-        # If RTA_TABLE is set, rtm.table is ignored
+        # If RTAType.TABLE is set, rtm.table is ignored
         table = rtm.table
         iif: int | None = None
         oif: int | None = None
@@ -161,28 +162,28 @@ class Route:
 
         for nlattr in msg.attrs(rtm_size):
             match nlattr.attr_type:
-                case RTAType.RTA_TABLE:
+                case RTAType.TABLE:
                     table = nlattr.as_int()
-                case RTAType.RTA_OIF:
+                case RTAType.OIF:
                     oif = nlattr.as_int()
-                case RTAType.RTA_IIF:
+                case RTAType.IIF:
                     iif = nlattr.as_int()
-                case RTAType.RTA_DST:
+                case RTAType.DST:
                     dst = nlattr.as_ipaddress()
-                case RTAType.RTA_GATEWAY:
+                case RTAType.GATEWAY:
                     gateway = nlattr.as_ipaddress()
-                case RTAType.RTA_PRIORITY:
+                case RTAType.PRIORITY:
                     priority = nlattr.as_int()
-                case RTAType.RTA_PREF:
+                case RTAType.PREF:
                     pref = nlattr.as_int()
-                case RTAType.RTA_PREFSRC:
+                case RTAType.PREFSRC:
                     prefsrc = nlattr.as_ipaddress()
-                case RTAType.RTA_SRC:
+                case RTAType.SRC:
                     src = nlattr.as_ipaddress()
-                case RTAType.RTA_MARK:
+                case RTAType.MARK:
                     mark = nlattr.as_int()
                 case _:
-                    # TODO: Handle remaining attributes, e.g. RTA_UNSPEC and RTA_CACHEINFO
+                    # TODO: Handle remaining attributes, e.g. RTAType.UNSPEC and RTAType.CACHEINFO
                     pass
 
         return Route(
@@ -220,8 +221,8 @@ class Route:
     ) -> str:
         parts: list[str] = []
 
-        if self.rtm_type != RTNType.RTN_UNICAST:
-            rtm_type = RTNType(self.rtm_type).name.removeprefix("RTN_").lower()
+        if self.rtm_type != RTNType.UNICAST:
+            rtm_type = RTNType(self.rtm_type).name.lower()
             parts.append(rtm_type)
 
         if self.dst:
@@ -274,9 +275,7 @@ class Route:
             parts.extend(
                 [
                     "pref",
-                    ICMPv6RouterPref(self.pref)
-                    .name.removeprefix("ICMPV6_ROUTER_PREF_")
-                    .lower(),
+                    ICMPv6RouterPref(self.pref).name.lower(),
                 ]
             )
 
