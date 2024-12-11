@@ -75,8 +75,8 @@ constants = [
 ]
 
 
-def generate_program() -> Path:
-    program = Path("main.c")
+def generate_program(name: str = "gen_constants") -> Path:
+    program = (Path(__file__).parent.resolve() / name).with_suffix(".c")
     with open(program, "wt") as f:
         f.write("""\
 #include <asm/types.h>
@@ -108,7 +108,7 @@ def compile_binary(program: Path) -> Path:
 
 
 def run_binary(binary: Path) -> dict[str, dict[str, int]]:
-    p = subprocess.run([f"./{binary}"], check=True, capture_output=True)
+    p = subprocess.run([str(binary.absolute())], check=True, capture_output=True)
     assert p.stdout
 
     values: dict[str, dict[str, int]] = defaultdict(dict)
@@ -125,10 +125,6 @@ def main() -> None:
     program = generate_program()
     binary = compile_binary(program)
     constant_values = run_binary(binary)
-
-    # Intentionally keep program and binary on error
-    binary.unlink()
-    # program.unlink()
 
     # Print values, here we could generate enum types directly!
     print("""\
