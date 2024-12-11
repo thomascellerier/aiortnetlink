@@ -43,13 +43,13 @@ strict = true
 [tool.poe.tasks]
 # TODO: Switch to uv's task system once its implemented
 # See https://github.com/astral-sh/uv/issues/5903
-ruff-fmt = "uv run --group fmt ruff format src tests"
-ruff-fmt-check = "uv run --group fmt ruff format --check src tests"
-ruff-check = "uv run --group lint ruff check src tests"
-ruff-check-fix-imports = "uv run --group fmt ruff check --fix --select I src tests"
-ruff-check-fix = "uv run --group fmt ruff check --fix src tests"
+ruff-fmt = "uv run --group fmt ruff format src tests tools"
+ruff-fmt-check = "uv run --group fmt ruff format --check src tests tools"
+ruff-check = "uv run --group lint ruff check src tests tools"
+ruff-check-fix-imports = "uv run --group fmt ruff check --fix --select I src tests tools"
+ruff-check-fix = "uv run --group fmt ruff check --fix src tests tools"
 fmt = ["ruff-fmt", "ruff-check-fix-imports"]
-mypy = "uv run --group lint mypy src tests"
+mypy = "uv run --group lint mypy src tests tools"
 lint = ["mypy", "ruff-check"]
 tests = "env PYTHONPATH=src uv run --group test pytest -v tests"
 test = ["lint", "tests", "ruff-fmt-check"]
