@@ -2,6 +2,7 @@
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <linux/icmpv6.h>
+#include <linux/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <stdio.h>
@@ -159,6 +160,27 @@ int main(int argc, char *argv[]) {
     printf("IFLAType IFLA_LINK_NETNSID %d\n", IFLA_LINK_NETNSID);
     printf("IFLAType IFLA_PHYS_PORT_NAME %d\n", IFLA_PHYS_PORT_NAME);
     printf("IFLAType IFLA_PROTO_DOWN %d\n", IFLA_PROTO_DOWN);
+
+    // IFLAFlag
+    printf("IFLAFlag IFF_UP %d\n", IFF_UP);
+    printf("IFLAFlag IFF_BROADCAST %d\n", IFF_BROADCAST);
+    printf("IFLAFlag IFF_DEBUG %d\n", IFF_DEBUG);
+    printf("IFLAFlag IFF_LOOPBACK %d\n", IFF_LOOPBACK);
+    printf("IFLAFlag IFF_POINTOPOINT %d\n", IFF_POINTOPOINT);
+    printf("IFLAFlag IFF_NOTRAILERS %d\n", IFF_NOTRAILERS);
+    printf("IFLAFlag IFF_RUNNING %d\n", IFF_RUNNING);
+    printf("IFLAFlag IFF_NOARP %d\n", IFF_NOARP);
+    printf("IFLAFlag IFF_PROMISC %d\n", IFF_PROMISC);
+    printf("IFLAFlag IFF_ALLMULTI %d\n", IFF_ALLMULTI);
+    printf("IFLAFlag IFF_MASTER %d\n", IFF_MASTER);
+    printf("IFLAFlag IFF_SLAVE %d\n", IFF_SLAVE);
+    printf("IFLAFlag IFF_MULTICAST %d\n", IFF_MULTICAST);
+    printf("IFLAFlag IFF_PORTSEL %d\n", IFF_PORTSEL);
+    printf("IFLAFlag IFF_AUTOMEDIA %d\n", IFF_AUTOMEDIA);
+    printf("IFLAFlag IFF_DYNAMIC %d\n", IFF_DYNAMIC);
+    printf("IFLAFlag IFF_LOWER_UP %d\n", IFF_LOWER_UP);
+    printf("IFLAFlag IFF_DORMANT %d\n", IFF_DORMANT);
+    printf("IFLAFlag IFF_ECHO %d\n", IFF_ECHO);
 
     // IFAType
     printf("IFAType IFA_UNSPEC %d\n", IFA_UNSPEC);

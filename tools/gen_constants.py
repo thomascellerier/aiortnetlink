@@ -103,6 +103,28 @@ ifla_types = [
     "IFLA_PROTO_DOWN",
 ]
 
+if_flags = [
+    "IFF_UP",
+    "IFF_BROADCAST",
+    "IFF_DEBUG",
+    "IFF_LOOPBACK",
+    "IFF_POINTOPOINT",
+    "IFF_NOTRAILERS",
+    "IFF_RUNNING",
+    "IFF_NOARP",
+    "IFF_PROMISC",
+    "IFF_ALLMULTI",
+    "IFF_MASTER",
+    "IFF_SLAVE",
+    "IFF_MULTICAST",
+    "IFF_PORTSEL",
+    "IFF_AUTOMEDIA",
+    "IFF_DYNAMIC",
+    "IFF_LOWER_UP",
+    "IFF_DORMANT",
+    "IFF_ECHO",
+]
+
 ifa_types = [
     "IFA_UNSPEC",
     "IFA_ADDRESS",
@@ -156,6 +178,7 @@ constants = [
     TypeSpec("NLFlag", "NLM_F_", netlink_flags, is_macro=True, flag=True),
     TypeSpec("RTNType", "RTN_", route_types),
     TypeSpec("IFLAType", "IFLA_", ifla_types),
+    TypeSpec("IFFlag", "IFF_", if_flags, flag=True),
     TypeSpec("IFAType", "IFA_", ifa_types),
     TypeSpec("IFAFlag", "IFA_F_", ifa_flags, flag=True),
     TypeSpec(
@@ -175,6 +198,7 @@ def generate_program(name: str = "gen_constants") -> Path:
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <linux/icmpv6.h>
+#include <linux/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <stdio.h>
@@ -234,7 +258,13 @@ from typing import Final
         print(f"class {name}(IntEnum):")
         for constant_name, constant_value in values.items():
             if type_spec.flag:
-                value_str = hex(constant_value)
+                bit_shift = constant_value.bit_length() - 1
+                if constant_value == (1 << bit_shift):
+                    # If the flag can be represented a bit shift do so
+                    value_str = f"1 << {bit_shift}"
+                else:
+                    # Not a bit shift, could be a combination of other flags.
+                    value_str = hex(constant_value)
             else:
                 value_str = str(constant_value)
             print(

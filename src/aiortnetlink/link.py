@@ -12,7 +12,7 @@ from aiortnetlink.netlink import (
 )
 from aiortnetlink.rtm import RTMType
 
-__all__ = ["IFLink", "IFLAType", "Flags", "ifinfomsg"]
+__all__ = ["IFLink", "IFLAType", "IFFlag", "ifinfomsg"]
 
 ARPHRD_ETHER: Final = 1
 ARPHRD_NONE: Final = 0xFFFE
@@ -62,7 +62,7 @@ class IFLAType(IntEnum):
     PROTO_DOWN: Final = 39
 
 
-class Flags(IntEnum):
+class IFFlag(IntEnum):
     UP: Final = 1 << 0
     BROADCAST: Final = 1 << 1
     DEBUG: Final = 1 << 2
@@ -82,6 +82,10 @@ class Flags(IntEnum):
     LOWER_UP: Final = 1 << 16
     DORMANT: Final = 1 << 17
     ECHO: Final = 1 << 18
+
+    @property
+    def constant_name(self) -> str:
+        return f"IFF_{self.name}"
 
 
 class IFOper(IntEnum):
@@ -225,12 +229,12 @@ class IFLink:
     ) -> str:
         flags = []
 
-        if self.flags & Flags.UP and not self.flags & Flags.RUNNING:
+        if self.flags & IFFlag.UP and not self.flags & IFFlag.RUNNING:
             flags.append("NO-CARRIER")
 
-        for flag in Flags:
+        for flag in IFFlag:
             if self.flags & flag:
-                if flag == Flags.RUNNING:
+                if flag == IFFlag.RUNNING:
                     continue
                 flags.append(flag.name)
 
