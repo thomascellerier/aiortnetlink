@@ -66,12 +66,13 @@ class TypeSpec:
     name: str
     constants: list[str]
     is_macro: bool = False
+    flag: bool = False
 
 
 constants = [
     TypeSpec("NLFamily", netlink_families, is_macro=True),
-    TypeSpec("NLFlag", netlink_flags, is_macro=True),
-    TypeSpec("RTNType", route_types, False),
+    TypeSpec("NLFlag", netlink_flags, is_macro=True, flag=True),
+    TypeSpec("RTNType", route_types),
 ]
 
 
@@ -135,10 +136,16 @@ from enum import IntEnum
 from typing import Final
 
 """)
-    for family, values in constant_values.items():
-        print(f"class {family}(IntEnum):")
-        for name, value in values.items():
-            print(f"    {name}: Final = {value}")
+    type_spec_by_name = {type_spec.name: type_spec for type_spec in constants}
+    for name, values in constant_values.items():
+        type_spec = type_spec_by_name[name]
+        print(f"class {name}(IntEnum):")
+        for constant_name, constant_value in values.items():
+            if type_spec.flag:
+                value_str = hex(constant_value)
+            else:
+                value_str = str(constant_value)
+            print(f"    {constant_name}: Final = {value_str}")
         print("\n")
 
 
