@@ -43,7 +43,7 @@ class IFAType(IntEnum):
     PROTO: Final = 11
 
     @property
-    def attr_name(self) -> str:
+    def constant_name(self) -> str:
         return f"IFA_{self.name}"
 
 
@@ -222,7 +222,7 @@ class IFAddr:
 
         if address is None:
             raise NetlinkValueError(
-                f"Invalid netlink address, missing {IFAType.ADDRESS.attr_name} attribute"
+                f"Invalid netlink address, missing {IFAType.ADDRESS.constant_name} attribute"
             )
 
         return IFAddr(

@@ -103,6 +103,21 @@ ifla_types = [
     "IFLA_PROTO_DOWN",
 ]
 
+ifa_types = [
+    "IFA_UNSPEC",
+    "IFA_ADDRESS",
+    "IFA_LOCAL",
+    "IFA_LABEL",
+    "IFA_BROADCAST",
+    "IFA_ANYCAST",
+    "IFA_CACHEINFO",
+    "IFA_MULTICAST",
+    "IFA_FLAGS",
+    "IFA_RT_PRIORITY",
+    "IFA_TARGET_NETNSID",
+    "IFA_PROTO",
+]
+
 
 @dataclass
 class TypeSpec:
@@ -118,6 +133,7 @@ constants = [
     TypeSpec("NLFlag", "NLM_F_", netlink_flags, is_macro=True, flag=True),
     TypeSpec("RTNType", "RTN_", route_types),
     TypeSpec("IFLAType", "IFLA_", ifla_types),
+    TypeSpec("IFAType", "IFA_", ifa_types),
 ]
 
 
@@ -190,7 +206,15 @@ from typing import Final
                 value_str = hex(constant_value)
             else:
                 value_str = str(constant_value)
-            print(f"    {constant_name.removeprefix(type_spec.prefix)}: Final = {value_str}")
+            print(
+                f"    {constant_name.removeprefix(type_spec.prefix)}: Final = {value_str}"
+            )
+        print(f"""\
+
+    @property
+    def constant_name(self) -> str:
+        return f"{type_spec.prefix}{{self.name}}"
+""")
         print("\n")
 
 

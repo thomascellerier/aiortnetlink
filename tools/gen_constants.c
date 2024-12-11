@@ -159,5 +159,19 @@ int main(int argc, char *argv[]) {
     printf("IFLAType IFLA_PHYS_PORT_NAME %d\n", IFLA_PHYS_PORT_NAME);
     printf("IFLAType IFLA_PROTO_DOWN %d\n", IFLA_PROTO_DOWN);
 
+    // IFAType
+    printf("IFAType IFA_UNSPEC %d\n", IFA_UNSPEC);
+    printf("IFAType IFA_ADDRESS %d\n", IFA_ADDRESS);
+    printf("IFAType IFA_LOCAL %d\n", IFA_LOCAL);
+    printf("IFAType IFA_LABEL %d\n", IFA_LABEL);
+    printf("IFAType IFA_BROADCAST %d\n", IFA_BROADCAST);
+    printf("IFAType IFA_ANYCAST %d\n", IFA_ANYCAST);
+    printf("IFAType IFA_CACHEINFO %d\n", IFA_CACHEINFO);
+    printf("IFAType IFA_MULTICAST %d\n", IFA_MULTICAST);
+    printf("IFAType IFA_FLAGS %d\n", IFA_FLAGS);
+    printf("IFAType IFA_RT_PRIORITY %d\n", IFA_RT_PRIORITY);
+    printf("IFAType IFA_TARGET_NETNSID %d\n", IFA_TARGET_NETNSID);
+    printf("IFAType IFA_PROTO %d\n", IFA_PROTO);
+
     return 0;
 }
