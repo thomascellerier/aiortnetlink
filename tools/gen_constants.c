@@ -1,6 +1,7 @@
 #include <asm/types.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#include <linux/icmpv6.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <stdio.h>
@@ -172,6 +173,12 @@ int main(int argc, char *argv[]) {
     printf("IFAType IFA_RT_PRIORITY %d\n", IFA_RT_PRIORITY);
     printf("IFAType IFA_TARGET_NETNSID %d\n", IFA_TARGET_NETNSID);
     printf("IFAType IFA_PROTO %d\n", IFA_PROTO);
+
+    // ICMPv6RouterPref
+    printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_LOW %d\n", ICMPV6_ROUTER_PREF_LOW);
+    printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_MEDIUM %d\n", ICMPV6_ROUTER_PREF_MEDIUM);
+    printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_HIGH %d\n", ICMPV6_ROUTER_PREF_HIGH);
+    printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_INVALID %d\n", ICMPV6_ROUTER_PREF_INVALID);
 
     return 0;
 }

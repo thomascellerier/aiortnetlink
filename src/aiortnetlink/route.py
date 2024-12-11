@@ -72,6 +72,10 @@ class ICMPv6RouterPref(IntEnum):
     HIGH: Final = 0x1
     INVALID: Final = 0x2
 
+    @property
+    def constant_name(self) -> str:
+        return f"ICMPV6_ROUTER_PREF_{self.name}"
+
 
 _RTMsgStruct = struct.Struct(
     b"B"  # Family

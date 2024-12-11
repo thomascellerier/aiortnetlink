@@ -119,6 +119,14 @@ ifa_types = [
 ]
 
 
+icmpv6_router_pref = [
+    "ICMPV6_ROUTER_PREF_LOW",
+    "ICMPV6_ROUTER_PREF_MEDIUM",
+    "ICMPV6_ROUTER_PREF_HIGH",
+    "ICMPV6_ROUTER_PREF_INVALID",
+]
+
+
 @dataclass
 class TypeSpec:
     name: str
@@ -134,6 +142,12 @@ constants = [
     TypeSpec("RTNType", "RTN_", route_types),
     TypeSpec("IFLAType", "IFLA_", ifla_types),
     TypeSpec("IFAType", "IFA_", ifa_types),
+    TypeSpec(
+        "ICMPv6RouterPref",
+        "ICMPV6_ROUTER_PREF_",
+        icmpv6_router_pref,
+        flag=True,
+    ),
 ]
 
 
@@ -144,6 +158,7 @@ def generate_program(name: str = "gen_constants") -> Path:
 #include <asm/types.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#include <linux/icmpv6.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <stdio.h>
