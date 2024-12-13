@@ -8,6 +8,7 @@ __all__ = [
 
 
 class RTMType(IntEnum):
+    # TODO: GENERATE
     NEWLINK: Final = 16
     DELLINK: Final = 17
     GETLINK: Final = 18
@@ -26,6 +27,7 @@ class RTMType(IntEnum):
 
 
 class RTNLGroup(IntEnum):
+    # TODO: GENERATE
     LINK: Final = 1
     NOTIFY: Final = 2
     NEIGH: Final = 3

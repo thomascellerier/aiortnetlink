@@ -1,56 +1,16 @@
 import ipaddress
 import socket
 from dataclasses import dataclass
-from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
-from typing import Callable, Final, Literal
+from typing import Callable, Literal
 
-from aiortnetlink.netlink import NetlinkRequest, NLFlag, NLMsg
+from aiortnetlink.constants.fratype import FRAType
+from aiortnetlink.constants.nlflag import NLFlag
+from aiortnetlink.netlink import NetlinkRequest, NLMsg
 from aiortnetlink.route import RTMsg, RTNType
 from aiortnetlink.rtm import RTMType
 
 __all__ = ["Rule"]
-
-
-class RTNLFamily(IntEnum):
-    IPMR: Final = 128
-    IP6MR: Final = 129
-
-    @property
-    def constant_name(self) -> str:
-        return f"RTNL_FAMILY_{self.name}"
-
-
-class FRAType(IntEnum):
-    UNSPEC: Final = 0
-    DST: Final = 1
-    SRC: Final = 2
-    IIFNAME: Final = 3
-    GOTO: Final = 4
-    UNUSED2: Final = 5
-    PRIORITY: Final = 6
-    UNUSED3: Final = 7
-    UNUSED4: Final = 8
-    UNUSED5: Final = 9
-    FWMARK: Final = 10
-    FLOW: Final = 11
-    TUN_ID: Final = 12
-    SUPPRESS_IFGROUP: Final = 13
-    SUPPRESS_PREFIXLEN: Final = 14
-    TABLE: Final = 15
-    FWMASK: Final = 16
-    OIFNAME: Final = 17
-    PAD: Final = 18
-    L3MDEV: Final = 19
-    UID_RANGE: Final = 20
-    PROTOCOL: Final = 21
-    IP_PROTO: Final = 22
-    SPORT_RANGE: Final = 23
-    DPORT_RANGE: Final = 24
-
-    @property
-    def constant_name(self) -> str:
-        return f"FRA_{self.name}"
 
 
 def get_rule_request() -> NetlinkRequest:

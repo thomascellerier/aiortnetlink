@@ -5,14 +5,11 @@ import socket
 import struct
 import sys
 from asyncio import DatagramTransport
-from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Final, Iterator, NamedTuple
 
 __all__ = [
     "NLFamily",
-    "NLMsgType",
-    "NLFlag",
     "NetlinkOSError",
     "NetlinkValueError",
     "NetlinkDumpInterruptedError",
@@ -30,66 +27,7 @@ __all__ = [
     "NetlinkRequest",
 ]
 
-
-class NLFamily(IntEnum):
-    ROUTE: Final = 0
-    USERSOCK: Final = 2
-    FIREWALL: Final = 3
-    SOCK_DIAG: Final = 4
-    INET_DIAG: Final = 4
-    NFLOG: Final = 5
-    XFRM: Final = 6
-    SELINUX: Final = 7
-    ISCSI: Final = 8
-    AUDIT: Final = 9
-    FIB_LOOKUP: Final = 10
-    CONNECTOR: Final = 11
-    NETFILTER: Final = 12
-    IP6_FW: Final = 13
-    DNRTMSG: Final = 14
-    KOBJECT_UEVENT: Final = 15
-    GENERIC: Final = 16
-    CRYPTO: Final = 21
-
-    @property
-    def constant_name(self) -> str:
-        return f"NETLINK_{self.name}"
-
-
-class NLMsgType(IntEnum):
-    NOOP: Final = 1
-    ERROR: Final = 2
-    DONE: Final = 3
-    OVERRUN: Final = 4
-    MIN_TYPE: Final = 16
-
-    @property
-    def constant_name(self) -> str:
-        return f"NLMSG_{self.name}"
-
-
-class NLFlag(IntEnum):
-    REQUEST: Final = 1 << 0
-    MULTI: Final = 1 << 1
-    ACK: Final = 1 << 2
-    ECHO: Final = 1 << 3
-    DUMP_INTR: Final = 1 << 4
-    DUMP_FILTERED: Final = 1 << 5
-    # get requests
-    ROOT: Final = 1 << 8
-    MATCH: Final = 1 << 9
-    ATOMIC: Final = 1 << 10
-    DUMP: Final = 0x300
-    # new requests
-    REPLACE: Final = 1 << 8
-    EXCL: Final = 1 << 9
-    CREATE: Final = 1 << 10
-    APPEND: Final = 1 << 11
-
-    @property
-    def constant_name(self) -> str:
-        return f"NLM_F_{self.name}"
-
+from aiortnetlink.constants.nlfamily import NLFamily
 
 # Netlink socket options
 SOL_NETLINK: Final = 270

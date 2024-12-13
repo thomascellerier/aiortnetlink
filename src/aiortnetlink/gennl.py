@@ -3,52 +3,21 @@ Generic netlink
 """
 
 import struct
-from enum import IntEnum
 from typing import Final, Literal
 
+from aiortnetlink.constants.ctrlattr import CtrlAttr
+from aiortnetlink.constants.ctrlcmd import CtrlCmd
+from aiortnetlink.constants.nlflag import NLFlag
+from aiortnetlink.constants.nlmsgtype import NLMsgType
 from aiortnetlink.netlink import (
     NetlinkRequest,
     NLAttr,
-    NLFlag,
-    NLMsgType,
 )
 
-__all__ = ["get_family_request", "CtrlCmd"]
+__all__ = ["get_family_request"]
 
 
 GENL_ID_CTRL: Final = NLMsgType.MIN_TYPE
-
-
-class CtrlCmd(IntEnum):
-    UNSPEC: Final = 0
-    NEWFAMILY: Final = 1
-    DELFAMILY: Final = 2
-    GETFAMILY: Final = 3
-    NEWOPS: Final = 4
-    DELOPS: Final = 5
-    GETOPS: Final = 6
-    NEWMCAST_GRP: Final = 7
-    DELMCAST_GRP: Final = 8
-    GETMCAST_GRP: Final = 9
-
-    @property
-    def constant_name(self) -> str:
-        return f"CTRL_CMD_{self.name}"
-
-
-class CtrlAttr(IntEnum):
-    UNSPEC: Final = 0
-    FAMILY_ID: Final = 1
-    FAMILY_NAME: Final = 2
-    VERSION: Final = 3
-    HDRSIZE: Final = 4
-    MAXATTR: Final = 5
-    OPS: Final = 6
-    MCAST_GROUPS: Final = 7
-
-    @property
-    def constant_name(self) -> str:
-        return f"CTRL_ATTR_{self.name}"
 
 
 _GENMSGHDR_FMT: Final = (

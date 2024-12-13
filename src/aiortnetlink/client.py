@@ -6,6 +6,8 @@ import os
 from ipaddress import IPv4Interface, IPv6Interface
 from typing import TYPE_CHECKING, Iterable
 
+from aiortnetlink.constants.nlflag import NLFlag
+from aiortnetlink.constants.nlmsgtype import NLMsgType
 from aiortnetlink.lazy import (
     decode_notification_fn,
     ifaddr_type,
@@ -20,9 +22,7 @@ from aiortnetlink.netlink import (
     NetlinkProtocol,
     NetlinkRequest,
     NetlinkValueError,
-    NLFlag,
     NLMsg,
-    NLMsgType,
     create_netlink_endpoint,
     decode_nlmsg_error,
     encode_nlmsg,

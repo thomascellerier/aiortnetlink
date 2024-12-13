@@ -1,7 +1,6 @@
 import socket
 import struct
 from dataclasses import dataclass
-from enum import IntEnum
 from ipaddress import (
     IPv4Address,
     IPv4Interface,
@@ -9,57 +8,21 @@ from ipaddress import (
     IPv6Interface,
     ip_interface,
 )
-from typing import Callable, Final, Literal, NamedTuple
+from typing import Callable, Literal, NamedTuple
 
+from aiortnetlink.constants.ifaflag import IFAFlag
+from aiortnetlink.constants.ifatype import IFAType
+from aiortnetlink.constants.nlflag import NLFlag
 from aiortnetlink.netlink import (
     NetlinkRequest,
     NetlinkValueError,
     NLAttr,
-    NLFlag,
     NLMsg,
     encode_nlattr_str,
 )
 from aiortnetlink.rtm import RTMType
 
 __all__ = ["IFAddr"]
-
-
-class IFAType(IntEnum):
-    UNSPEC: Final = 0
-    ADDRESS: Final = 1
-    LOCAL: Final = 2
-    LABEL: Final = 3
-    BROADCAST: Final = 4
-    ANYCAST: Final = 5
-    CACHEINFO: Final = 6
-    MULTICAST: Final = 7
-    FLAGS: Final = 8
-    RT_PRIORITY: Final = 9
-    TARGET_NETNSID: Final = 10
-    PROTO: Final = 11
-
-    @property
-    def constant_name(self) -> str:
-        return f"IFA_{self.name}"
-
-
-class IFAFlag(IntEnum):
-    SECONDARY: Final = 0x1
-    NODAD: Final = 0x2
-    OPTIMISTIC: Final = 0x4
-    DADFAILED: Final = 0x8
-    HOMEADDRESS: Final = 0x10
-    DEPRECATED: Final = 0x20
-    TENTATIVE: Final = 0x40
-    PERMANENT: Final = 0x80
-    MANAGETEMPADDR: Final = 0x100
-    NOPREFIXROUTE: Final = 0x200
-    MCAUTOJOIN: Final = 0x400
-    STABLE_PRIVACY: Final = 0x800
-
-    @property
-    def constant_name(self) -> str:
-        return f"IFA_F_{self.name}"
 
 
 _IFAddrStruct = struct.Struct(

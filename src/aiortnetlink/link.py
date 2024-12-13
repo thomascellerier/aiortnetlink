@@ -3,97 +3,22 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Callable, Final
 
+from aiortnetlink.constants.arphrdtype import ARPHRDType
+from aiortnetlink.constants.ifflag import IFFlag
+from aiortnetlink.constants.iflatype import IFLAType
+from aiortnetlink.constants.nlflag import NLFlag
 from aiortnetlink.netlink import (
     NetlinkRequest,
-    NLFlag,
     NLMsg,
     encode_nlattr_str,
 )
 from aiortnetlink.rtm import RTMType
 
-__all__ = ["IFLink", "IFLAType", "IFFlag", "ifinfomsg"]
-
-
-class ARPHRDType(IntEnum):
-    ETHER: Final = 1
-    NONE: Final = 65534
-    LOOPBACK: Final = 772
-
-    @property
-    def constant_name(self) -> str:
-        return f"ARPHRD_{self.name}"
-
-
-class IFLAType(IntEnum):
-    UNSPEC: Final = 0
-    ADDRESS: Final = 1
-    BROADCAST: Final = 2
-    IFNAME: Final = 3
-    MTU: Final = 4
-    LINK: Final = 5
-    QDISC: Final = 6
-    STATS: Final = 7
-    COST: Final = 8
-    PRIORITY: Final = 9
-    MASTER: Final = 10
-    WIRELESS: Final = 11
-    PROTINFO: Final = 12
-    TXQLEN: Final = 13
-    MAP: Final = 14
-    WEIGHT: Final = 15
-    OPERSTATE: Final = 16
-    LINKMODE: Final = 17
-    LINKINFO: Final = 18
-    NET_NS_PID: Final = 19
-    IFALIAS: Final = 20
-    NUM_VF: Final = 21
-    VFINFO_LIST: Final = 22
-    STATS64: Final = 23
-    VF_PORTS: Final = 24
-    PORT_SELF: Final = 25
-    AF_SPEC: Final = 26
-    GROUP: Final = 27
-    NET_NS_FD: Final = 28
-    EXT_MASK: Final = 29
-    PROMISCUITY: Final = 30
-    NUM_TX_QUEUES: Final = 31
-    NUM_RX_QUEUES: Final = 32
-    CARRIER: Final = 33
-    PHYS_PORT_ID: Final = 34
-    CARRIER_CHANGES: Final = 35
-    PHYS_SWITCH_ID: Final = 36
-    LINK_NETNSID: Final = 37
-    PHYS_PORT_NAME: Final = 38
-    PROTO_DOWN: Final = 39
-
-
-class IFFlag(IntEnum):
-    UP: Final = 1 << 0
-    BROADCAST: Final = 1 << 1
-    DEBUG: Final = 1 << 2
-    LOOPBACK: Final = 1 << 3
-    POINTOPOINT: Final = 1 << 4
-    NOTRAILERS: Final = 1 << 5
-    RUNNING: Final = 1 << 6
-    NOARP: Final = 1 << 7
-    PROMISC: Final = 1 << 8
-    ALLMULTI: Final = 1 << 9
-    MASTER: Final = 1 << 10
-    SLAVE: Final = 1 << 11
-    MULTICAST: Final = 1 << 12
-    PORTSEL: Final = 1 << 13
-    AUTOMEDIA: Final = 1 << 14
-    DYNAMIC: Final = 1 << 15
-    LOWER_UP: Final = 1 << 16
-    DORMANT: Final = 1 << 17
-    ECHO: Final = 1 << 18
-
-    @property
-    def constant_name(self) -> str:
-        return f"IFF_{self.name}"
+__all__ = ["IFLink", "ifinfomsg"]
 
 
 class IFOper(IntEnum):
+    # TODO: GENERATE
     UNKNOWN: Final = 0
     NOTPRESENT: Final = 1
     DOWN: Final = 2
@@ -104,6 +29,7 @@ class IFOper(IntEnum):
 
 
 class IFLinkMode(IntEnum):
+    # TODO: GENERATE
     DEFAULT: Final = 0
     DORMANT: Final = 1
     TESTING: Final = 2

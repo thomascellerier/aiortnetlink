@@ -2,11 +2,14 @@ import ipaddress
 import socket
 import struct
 from dataclasses import dataclass
-from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
-from typing import Callable, Final, Literal, NamedTuple
+from typing import Callable, Literal, NamedTuple
 
-from aiortnetlink.netlink import NetlinkRequest, NLFlag, NLMsg
+from aiortnetlink.constants.icmpv6routerpref import ICMPv6RouterPref
+from aiortnetlink.constants.nlflag import NLFlag
+from aiortnetlink.constants.rtatype import RTAType
+from aiortnetlink.constants.rtntype import RTNType
+from aiortnetlink.netlink import NetlinkRequest, NLMsg
 from aiortnetlink.rtm import RTMType
 
 __all__ = [
@@ -15,74 +18,6 @@ __all__ = [
     "get_route_request",
     "Route",
 ]
-
-
-class RTAType(IntEnum):
-    UNSPEC: Final = 0
-    DST: Final = 1
-    SRC: Final = 2
-    IIF: Final = 3
-    OIF: Final = 4
-    GATEWAY: Final = 5
-    PRIORITY: Final = 6
-    PREFSRC: Final = 7
-    METRICS: Final = 8
-    MULTIPATH: Final = 9
-    PROTOINFO: Final = 10
-    FLOW: Final = 11
-    CACHEINFO: Final = 12
-    SESSION: Final = 13
-    MP_ALGO: Final = 14
-    TABLE: Final = 15
-    MARK: Final = 16
-    MFC_STATS: Final = 17
-    VIA: Final = 18
-    NEWDST: Final = 19
-    PREF: Final = 20
-    ENCAP_TYPE: Final = 21
-    ENCAP: Final = 22
-    EXPIRES: Final = 23
-    PAD: Final = 24
-    UID: Final = 25
-    TTL_PROPAGATE: Final = 26
-    IP_PROTO: Final = 27
-    SPORT: Final = 28
-    DPORT: Final = 29
-    NH_ID: Final = 30
-
-    @property
-    def constant_name(self) -> str:
-        return f"RTA_{self.name}"
-
-
-class RTNType(IntEnum):
-    UNSPEC: Final = 0
-    UNICAST: Final = 1
-    LOCAL: Final = 2
-    BROADCAST: Final = 3
-    ANYCAST: Final = 4
-    MULTICAST: Final = 5
-    BLACKHOLE: Final = 6
-    UNREACHABLE: Final = 7
-    PROHIBIT: Final = 8
-    THROW: Final = 9
-    NAT: Final = 10
-    XRESOLVE: Final = 11
-
-    @property
-    def constant_name(self) -> str:
-        return f"RTN_{self.name}"
-
-
-class ICMPv6RouterPref(IntEnum):
-    LOW: Final = 0x3
-    MEDIUM: Final = 0x0
-    HIGH: Final = 0x1
-    INVALID: Final = 0x2
-
-    @property
-    def constant_name(self) -> str:
-        return f"ICMPV6_ROUTER_PREF_{self.name}"
 
 
 _RTMsgStruct = struct.Struct(
