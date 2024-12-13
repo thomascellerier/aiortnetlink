@@ -81,6 +81,12 @@ int main(int argc, char *argv[]) {
 #ifdef NLM_F_ECHO
     printf("NLFlag NLM_F_ECHO %d\n", NLM_F_ECHO);
 #endif
+#ifdef NLM_F_DUMP_INTR
+    printf("NLFlag NLM_F_DUMP_INTR %d\n", NLM_F_DUMP_INTR);
+#endif
+#ifdef NLM_F_DUMP_FILTERED
+    printf("NLFlag NLM_F_DUMP_FILTERED %d\n", NLM_F_DUMP_FILTERED);
+#endif
 #ifdef NLM_F_ROOT
     printf("NLFlag NLM_F_ROOT %d\n", NLM_F_ROOT);
 #endif

@@ -6,7 +6,7 @@ from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
 from typing import Callable, Final, Literal, NamedTuple
 
-from aiortnetlink.netlink import NLM_F_DUMP, NLM_F_REQUEST, NetlinkRequest, NLMsg
+from aiortnetlink.netlink import NetlinkRequest, NLFlag, NLMsg
 from aiortnetlink.rtm import RTMType
 
 __all__ = [
@@ -111,7 +111,7 @@ class RTMsg(NamedTuple):
 
 def get_route_request() -> NetlinkRequest:
     parts = [RTMsg().encode()]
-    flags = NLM_F_REQUEST | NLM_F_DUMP
+    flags = NLFlag.REQUEST | NLFlag.DUMP
     data = b"".join(parts)
     return NetlinkRequest(RTMType.GETROUTE, flags, data, RTMType.NEWROUTE)
 

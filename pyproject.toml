@@ -37,6 +37,10 @@ task-runner = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.ruff.lint]
+# Allow named lambdas
+ignore = ["E731"]
+
 [tool.mypy]
 strict = true
 

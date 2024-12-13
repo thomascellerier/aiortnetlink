@@ -5,26 +5,20 @@ import socket
 import struct
 import sys
 from asyncio import DatagramTransport
+from enum import IntEnum
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Final, Iterator, NamedTuple
 
 __all__ = [
+    "NLFamily",
+    "NLFlag",
     "NetlinkOSError",
     "NetlinkValueError",
-    "NLM_F_DUMP",
-    "NLM_F_REQUEST",
     "NetlinkDumpInterruptedError",
-    "NLM_F_DUMP_INTR",
     "NLMSG_ERROR",
     "decode_nlmsg_error",
     "NLMSG_DONE",
     "NetlinkError",
-    "NLM_F_MULTI",
-    "NLM_F_CREATE",
-    "NLM_F_REPLACE",
-    "NLM_F_EXCL",
-    "NLM_F_APPEND",
-    "NLM_F_ACK",
     "NLMSG_MIN_TYPE",
     "NetlinkProtocol",
     "create_netlink_endpoint",
@@ -39,8 +33,30 @@ __all__ = [
 ]
 
 
-NETLINK_ROUTE: Final = 0
-NETLINK_GENERIC: Final = 16
+class NLFamily(IntEnum):
+    ROUTE: Final = 0
+    USERSOCK: Final = 2
+    FIREWALL: Final = 3
+    SOCK_DIAG: Final = 4
+    INET_DIAG: Final = 4
+    NFLOG: Final = 5
+    XFRM: Final = 6
+    SELINUX: Final = 7
+    ISCSI: Final = 8
+    AUDIT: Final = 9
+    FIB_LOOKUP: Final = 10
+    CONNECTOR: Final = 11
+    NETFILTER: Final = 12
+    IP6_FW: Final = 13
+    DNRTMSG: Final = 14
+    KOBJECT_UEVENT: Final = 15
+    GENERIC: Final = 16
+    CRYPTO: Final = 21
+
+    @property
+    def constant_name(self) -> str:
+        return f"NETLINK_{self.name}"
+
 
 NLMSG_NOOP: Final = 0x1
 NLMSG_ERROR: Final = 0x2
@@ -49,25 +65,28 @@ NLMSG_OVERRUN: Final = 0x4
 NLMSG_MIN_TYPE: Final = 0x10
 
 
-# Netlink flags
-NLM_F_REQUEST: Final = 0x01
-NLM_F_MULTI: Final = 0x02
-NLM_F_ACK: Final = 0x04
-NLM_F_ECHO: Final = 0x08
-NLM_F_DUMP_INTR: Final = 0x10
-NLM_F_DUMP_FILTERED: Final = 0x20
+class NLFlag(IntEnum):
+    REQUEST: Final = 1 << 0
+    MULTI: Final = 1 << 1
+    ACK: Final = 1 << 2
+    ECHO: Final = 1 << 3
+    DUMP_INTR: Final = 1 << 4
+    DUMP_FILTERED: Final = 1 << 5
+    # get requests
+    ROOT: Final = 1 << 8
+    MATCH: Final = 1 << 9
+    ATOMIC: Final = 1 << 10
+    DUMP: Final = 0x300
+    # new requests
+    REPLACE: Final = 1 << 8
+    EXCL: Final = 1 << 9
+    CREATE: Final = 1 << 10
+    APPEND: Final = 1 << 11
 
-# Flags for get requests
-NLM_F_ROOT: Final = 0x100
-NLM_F_MATCH: Final = 0x200
-NLM_F_ATOMIC: Final = 0x400
-NLM_F_DUMP: Final = NLM_F_ROOT | NLM_F_MATCH
+    @property
+    def constant_name(self) -> str:
+        return f"NLM_F_{self.name}"
 
-# Flags for new requests
-NLM_F_REPLACE: Final = 0x100
-NLM_F_EXCL: Final = 0x200
-NLM_F_CREATE: Final = 0x400
-NLM_F_APPEND: Final = 0x800
 
 # Netlink socket options
 SOL_NETLINK: Final = 270
@@ -377,7 +396,7 @@ def _netlink_socket(
     pid: int = 0, groups: int = 0, rcvbuf_size: int | None = None
 ) -> socket.socket:
     sock = socket.socket(
-        type=socket.SOCK_DGRAM, family=socket.AF_NETLINK, proto=NETLINK_ROUTE
+        type=socket.SOCK_DGRAM, family=socket.AF_NETLINK, proto=NLFamily.ROUTE
     )
     sock.setsockopt(SOL_NETLINK, NETLINK_EXT_ACK, 1)
     # Tell the kernel not to ignore invalid options.

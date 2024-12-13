@@ -14,9 +14,6 @@ from aiortnetlink.lazy import (
     rule_type,
 )
 from aiortnetlink.netlink import (
-    NLM_F_DUMP_INTR,
-    NLM_F_MULTI,
-    NLM_F_REQUEST,
     NLMSG_DONE,
     NLMSG_ERROR,
     NetlinkDumpInterruptedError,
@@ -25,6 +22,7 @@ from aiortnetlink.netlink import (
     NetlinkProtocol,
     NetlinkRequest,
     NetlinkValueError,
+    NLFlag,
     NLMsg,
     create_netlink_endpoint,
     decode_nlmsg_error,
@@ -151,7 +149,7 @@ class NetlinkClient:
             if seqno is not None and msg.seq != seqno:
                 raise NetlinkError(f"Invalid seqno, expected {seqno} but got {msg.seq}")
 
-            if bool(msg.flags & NLM_F_DUMP_INTR):
+            if bool(msg.flags & NLFlag.DUMP):
                 # Defer the interrupted error to yield as much data as possible.
                 # The application can then decide whether to use the partial dump or not.
                 interrupted = True
@@ -170,7 +168,7 @@ class NetlinkClient:
             else:
                 raise NetlinkError(f"Unhandled netlink type {msg.msg_type}")
 
-            if not bool(msg.flags & NLM_F_MULTI):
+            if not bool(msg.flags & NLFlag.MULTI):
                 break
 
         if interrupted:
@@ -178,9 +176,9 @@ class NetlinkClient:
             raise NetlinkDumpInterruptedError("Netlink dump interrupted")
 
     async def _send_request(self, request: NetlinkRequest) -> AsyncIterator[NLMsg]:
-        if not request.flags & NLM_F_REQUEST:
+        if not request.flags & NLFlag.REQUEST:
             raise NetlinkValueError(
-                f"Netlink request should have request flag set {bin(NLM_F_REQUEST)}, "
+                f"Netlink request should have {NLFlag.constant_name} flag set {bin(NLFlag.REQUEST)}, "
                 f"but got {bin(request.flags)}"
             )
         seqno = self._send_nlmsg(request.msg_type, request.flags, request.data)

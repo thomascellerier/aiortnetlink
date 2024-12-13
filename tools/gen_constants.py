@@ -3,8 +3,10 @@
 Generate python enums from C constants.
 """
 
+import argparse
 import subprocess
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -35,6 +37,8 @@ netlink_flags = [
     "NLM_F_MULTI",
     "NLM_F_ACK",
     "NLM_F_ECHO",
+    "NLM_F_DUMP_INTR",
+    "NLM_F_DUMP_FILTERED",
     "NLM_F_ROOT",
     "NLM_F_MATCH",
     "NLM_F_ATOMIC",
@@ -218,7 +222,9 @@ constants = [
 ]
 
 
-def generate_program(name: str = "gen_constants") -> Path:
+def generate_program(
+    name: str = "gen_constants", filter_fn: Callable[[TypeSpec], bool] = lambda _: True
+) -> Path:
     """
     Generate program that prints out linux user API constant names with their matching value.
     The generated program is subject to the license of these headers.
@@ -243,6 +249,8 @@ def generate_program(name: str = "gen_constants") -> Path:
 int main(int argc, char *argv[]) {
 """)
         for type_spec in constants:
+            if not filter_fn(type_spec):
+                continue
             f.write(f"    // {type_spec.name}\n")
             for constant in type_spec.constants:
                 if type_spec.is_macro:
@@ -272,7 +280,7 @@ def run_binary(binary: Path) -> dict[str, dict[str, int]]:
     of the generated program using linux include headers.
     """
     p = subprocess.run([str(binary.absolute())], check=True, capture_output=True)
-    assert p.stdout
+    assert p.stdout is not None
 
     values: dict[str, dict[str, int]] = defaultdict(dict)
     for line in p.stdout.splitlines(keepends=False):
@@ -284,8 +292,19 @@ def run_binary(binary: Path) -> dict[str, dict[str, int]]:
     return values
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--type-name", default=None)
+    return parser.parse_args()
+
+
 def main() -> None:
-    program = generate_program()
+    args = parse_args()
+    if type_name := args.type_name:
+        filter_fn = lambda ts: ts.name == type_name
+    else:
+        filter_fn = lambda _: True
+    program = generate_program(filter_fn=filter_fn)
     binary = compile_binary(program)
     constant_values = run_binary(binary)
 

@@ -7,11 +7,10 @@ from enum import IntEnum
 from typing import Final, Literal
 
 from aiortnetlink.netlink import (
-    NLM_F_ACK,
-    NLM_F_REQUEST,
     NLMSG_MIN_TYPE,
     NetlinkRequest,
     NLAttr,
+    NLFlag,
 )
 
 __all__ = ["get_family_request", "CtrlCmd"]
@@ -30,7 +29,11 @@ class CtrlCmd(IntEnum):
     GETOPS: Final = 6
     NEWMCAST_GRP: Final = 7
     DELMCAST_GRP: Final = 8
-    GETMCAST_GRP: Final = 9  # unused
+    GETMCAST_GRP: Final = 9
+
+    @property
+    def constant_name(self) -> str:
+        return f"CTRL_CMD_{self.name}"
 
 
 class CtrlAttr(IntEnum):
@@ -42,6 +45,10 @@ class CtrlAttr(IntEnum):
     MAXATTR: Final = 5
     OPS: Final = 6
     MCAST_GROUPS: Final = 7
+
+    @property
+    def constant_name(self) -> str:
+        return f"CTRL_ATTR_{self.name}"
 
 
 _GENMSGHDR_FMT: Final = (
@@ -61,7 +68,7 @@ def _genmsghdr(
 
 
 def get_family_request(family: str) -> NetlinkRequest:
-    flags = NLM_F_REQUEST | NLM_F_ACK
+    flags = NLFlag.REQUEST | NLFlag.ACK
     parts = [
         _genmsghdr(CtrlCmd.GETFAMILY, 1),
         NLAttr.from_string(CtrlAttr.FAMILY_NAME, family),

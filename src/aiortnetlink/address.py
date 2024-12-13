@@ -12,14 +12,10 @@ from ipaddress import (
 from typing import Callable, Final, Literal, NamedTuple
 
 from aiortnetlink.netlink import (
-    NLM_F_ACK,
-    NLM_F_CREATE,
-    NLM_F_DUMP,
-    NLM_F_EXCL,
-    NLM_F_REQUEST,
     NetlinkRequest,
     NetlinkValueError,
     NLAttr,
+    NLFlag,
     NLMsg,
     encode_nlattr_str,
 )
@@ -92,11 +88,11 @@ class IFAddrMsg(NamedTuple):
 
 def get_addr_request(ifi_index: int = 0, ifi_name: str | None = None) -> NetlinkRequest:
     parts = [IFAddrMsg(if_index=ifi_index).pack()]
-    flags = NLM_F_REQUEST
+    flags = NLFlag.REQUEST.value
     if ifi_name is not None:
         parts.append(encode_nlattr_str(IFAType.LABEL, ifi_name))
     elif ifi_index == 0:
-        flags |= NLM_F_DUMP
+        flags |= NLFlag.DUMP
     data = b"".join(parts)
     return NetlinkRequest(RTMType.GETADDR, flags, data, RTMType.NEWADDR)
 
@@ -110,7 +106,7 @@ def add_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
         raise NetlinkValueError(
             f"Interface index must be specified when deleting address {address}"
         )
-    flags = NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE | NLM_F_EXCL
+    flags = NLFlag.REQUEST | NLFlag.ACK | NLFlag.CREATE | NLFlag.EXCL
     parts = [
         IFAddrMsg(
             family=socket.AF_INET if address.version == 4 else socket.AF_INET6,
@@ -130,7 +126,7 @@ def del_addr_request(address: IPInterface, ifi_index: int) -> NetlinkRequest:
         raise NetlinkValueError(
             f"Interface index must be specified when deleting address {address}"
         )
-    flags = NLM_F_REQUEST | NLM_F_ACK
+    flags = NLFlag.REQUEST | NLFlag.ACK
     parts = [
         IFAddrMsg(
             family=socket.AF_INET if address.version == 4 else socket.AF_INET6,

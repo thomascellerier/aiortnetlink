@@ -4,9 +4,8 @@ from enum import IntEnum
 from typing import Callable, Final
 
 from aiortnetlink.netlink import (
-    NLM_F_DUMP,
-    NLM_F_REQUEST,
     NetlinkRequest,
+    NLFlag,
     NLMsg,
     encode_nlattr_str,
 )
@@ -265,10 +264,10 @@ class IFLink:
 
 def get_link_request(ifi_index: int = 0, ifi_name: str | None = None) -> NetlinkRequest:
     parts = [ifinfomsg(index=ifi_index)]
-    flags = NLM_F_REQUEST
+    flags = NLFlag.REQUEST.value
     if ifi_name is not None:
         parts.append(encode_nlattr_str(IFLAType.IFNAME, ifi_name))
     elif ifi_index == 0:
-        flags |= NLM_F_DUMP
+        flags |= NLFlag.DUMP
     data = b"".join(parts)
     return NetlinkRequest(RTMType.GETLINK, flags, data, RTMType.NEWLINK)
