@@ -229,5 +229,15 @@ int main(int argc, char *argv[]) {
     printf("CtrlCmd CTRL_CMD_DELMCAST_GRP %d\n", CTRL_CMD_DELMCAST_GRP);
     printf("CtrlCmd CTRL_CMD_GETMCAST_GRP %d\n", CTRL_CMD_GETMCAST_GRP);
 
+    // CtrlAttr
+    printf("CtrlAttr CTRL_ATTR_UNSPEC %d\n", CTRL_ATTR_UNSPEC);
+    printf("CtrlAttr CTRL_ATTR_FAMILY_ID %d\n", CTRL_ATTR_FAMILY_ID);
+    printf("CtrlAttr CTRL_ATTR_FAMILY_NAME %d\n", CTRL_ATTR_FAMILY_NAME);
+    printf("CtrlAttr CTRL_ATTR_VERSION %d\n", CTRL_ATTR_VERSION);
+    printf("CtrlAttr CTRL_ATTR_HDRSIZE %d\n", CTRL_ATTR_HDRSIZE);
+    printf("CtrlAttr CTRL_ATTR_MAXATTR %d\n", CTRL_ATTR_MAXATTR);
+    printf("CtrlAttr CTRL_ATTR_OPS %d\n", CTRL_ATTR_OPS);
+    printf("CtrlAttr CTRL_ATTR_MCAST_GROUPS %d\n", CTRL_ATTR_MCAST_GROUPS);
+
     return 0;
 }

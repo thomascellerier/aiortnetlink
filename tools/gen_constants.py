@@ -163,7 +163,8 @@ icmpv6_router_prefs = [
     "ICMPV6_ROUTER_PREF_INVALID",
 ]
 
-gen_cmds = [
+
+ctrl_cmds = [
     "CTRL_CMD_UNSPEC",
     "CTRL_CMD_NEWFAMILY",
     "CTRL_CMD_DELFAMILY",
@@ -174,7 +175,18 @@ gen_cmds = [
     "CTRL_CMD_NEWMCAST_GRP",
     "CTRL_CMD_DELMCAST_GRP",
     "CTRL_CMD_GETMCAST_GRP",
+]
 
+
+ctrl_attrs = [
+    "CTRL_ATTR_UNSPEC",
+    "CTRL_ATTR_FAMILY_ID",
+    "CTRL_ATTR_FAMILY_NAME",
+    "CTRL_ATTR_VERSION",
+    "CTRL_ATTR_HDRSIZE",
+    "CTRL_ATTR_MAXATTR",
+    "CTRL_ATTR_OPS",
+    "CTRL_ATTR_MCAST_GROUPS",
 ]
 
 
@@ -201,7 +213,8 @@ constants = [
         icmpv6_router_prefs,
         flag=True,
     ),
-    TypeSpec("CtrlCmd", "CTRL_CMD_", gen_cmds),
+    TypeSpec("CtrlCmd", "CTRL_CMD_", ctrl_cmds),
+    TypeSpec("CtrlAttr", "CTRL_ATTR_", ctrl_attrs),
 ]
 
 
