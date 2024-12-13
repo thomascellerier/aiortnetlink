@@ -246,6 +246,11 @@ tun_iff_flags = [
     "IFF_TUN_EXCL",
 ]
 
+# Misc constants, not an actual enum
+misc = [
+    "IFNAMSIZ",
+]
+
 
 @dataclass
 class TypeSpec:
@@ -256,7 +261,7 @@ class TypeSpec:
     flag: bool = False
     hex: bool = False
     includes: list[str] = field(default_factory=list)
-    printf_specifier: typing.Literal["%d", "%ld"] = "%d"
+    printf_specifier: Callable[[str], str] = lambda _: "%d"
 
 
 constants = [
@@ -302,7 +307,9 @@ constants = [
         "TUN",
         tun_ioctls,
         hex=True,
-        printf_specifier="%d",
+        # TODO: Is there a better way to do this?
+        # Is it possible to find the printf specifier based on the type using a C macro?
+        printf_specifier=lambda name: "%u" if name == "TUNGETDEVNETNS" else "%ld",
         includes=["<sys/ioctl.h>", "<linux/if_tun.h>"],
     ),
     TypeSpec(
@@ -310,8 +317,13 @@ constants = [
         "IFF_",
         tun_iff_flags,
         flag=True,
-        printf_specifier="%d",
         includes=["<linux/if_tun.h>"],
+    ),
+    TypeSpec(
+        "Misc",
+        "",
+        misc,
+        includes=["<linux/if.h>"],
     ),
 ]
 
@@ -344,7 +356,7 @@ int main(int argc, char *argv[]) {
                 if type_spec.is_macro:
                     f.write(f"#ifdef {constant}\n")
                 f.write(
-                    f'    printf("{type_spec.name} {constant} {type_spec.printf_specifier}\\n", {constant});\n'
+                    f'    printf("{type_spec.name} {constant} {type_spec.printf_specifier(constant)}\\n", {constant});\n'
                 )
                 if type_spec.is_macro:
                     f.write("#endif\n")

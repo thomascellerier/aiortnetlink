@@ -268,29 +268,29 @@ int main(int argc, char *argv[]) {
     printf("CtrlAttr CTRL_ATTR_MCAST_GROUPS %d\n", CTRL_ATTR_MCAST_GROUPS);
 
     // TunIoctl
-    printf("TunIoctl TUNSETNOCSUM %d\n", TUNSETNOCSUM);
-    printf("TunIoctl TUNSETDEBUG %d\n", TUNSETDEBUG);
-    printf("TunIoctl TUNSETIFF %d\n", TUNSETIFF);
-    printf("TunIoctl TUNSETPERSIST %d\n", TUNSETPERSIST);
-    printf("TunIoctl TUNSETOWNER %d\n", TUNSETOWNER);
-    printf("TunIoctl TUNSETLINK %d\n", TUNSETLINK);
-    printf("TunIoctl TUNSETGROUP %d\n", TUNSETGROUP);
-    printf("TunIoctl TUNGETFEATURES %d\n", TUNGETFEATURES);
-    printf("TunIoctl TUNSETOFFLOAD %d\n", TUNSETOFFLOAD);
-    printf("TunIoctl TUNSETTXFILTER %d\n", TUNSETTXFILTER);
-    printf("TunIoctl TUNGETIFF %d\n", TUNGETIFF);
-    printf("TunIoctl TUNGETSNDBUF %d\n", TUNGETSNDBUF);
-    printf("TunIoctl TUNSETSNDBUF %d\n", TUNSETSNDBUF);
-    printf("TunIoctl TUNATTACHFILTER %d\n", TUNATTACHFILTER);
-    printf("TunIoctl TUNDETACHFILTER %d\n", TUNDETACHFILTER);
-    printf("TunIoctl TUNGETVNETHDRSZ %d\n", TUNGETVNETHDRSZ);
-    printf("TunIoctl TUNSETVNETHDRSZ %d\n", TUNSETVNETHDRSZ);
-    printf("TunIoctl TUNSETVNETBE %d\n", TUNSETVNETBE);
-    printf("TunIoctl TUNGETVNETBE %d\n", TUNGETVNETBE);
-    printf("TunIoctl TUNSETSTEERINGEBPF %d\n", TUNSETSTEERINGEBPF);
-    printf("TunIoctl TUNSETFILTEREBPF %d\n", TUNSETFILTEREBPF);
-    printf("TunIoctl TUNSETCARRIER %d\n", TUNSETCARRIER);
-    printf("TunIoctl TUNGETDEVNETNS %d\n", TUNGETDEVNETNS);
+    printf("TunIoctl TUNSETNOCSUM %ld\n", TUNSETNOCSUM);
+    printf("TunIoctl TUNSETDEBUG %ld\n", TUNSETDEBUG);
+    printf("TunIoctl TUNSETIFF %ld\n", TUNSETIFF);
+    printf("TunIoctl TUNSETPERSIST %ld\n", TUNSETPERSIST);
+    printf("TunIoctl TUNSETOWNER %ld\n", TUNSETOWNER);
+    printf("TunIoctl TUNSETLINK %ld\n", TUNSETLINK);
+    printf("TunIoctl TUNSETGROUP %ld\n", TUNSETGROUP);
+    printf("TunIoctl TUNGETFEATURES %ld\n", TUNGETFEATURES);
+    printf("TunIoctl TUNSETOFFLOAD %ld\n", TUNSETOFFLOAD);
+    printf("TunIoctl TUNSETTXFILTER %ld\n", TUNSETTXFILTER);
+    printf("TunIoctl TUNGETIFF %ld\n", TUNGETIFF);
+    printf("TunIoctl TUNGETSNDBUF %ld\n", TUNGETSNDBUF);
+    printf("TunIoctl TUNSETSNDBUF %ld\n", TUNSETSNDBUF);
+    printf("TunIoctl TUNATTACHFILTER %ld\n", TUNATTACHFILTER);
+    printf("TunIoctl TUNDETACHFILTER %ld\n", TUNDETACHFILTER);
+    printf("TunIoctl TUNGETVNETHDRSZ %ld\n", TUNGETVNETHDRSZ);
+    printf("TunIoctl TUNSETVNETHDRSZ %ld\n", TUNSETVNETHDRSZ);
+    printf("TunIoctl TUNSETVNETBE %ld\n", TUNSETVNETBE);
+    printf("TunIoctl TUNGETVNETBE %ld\n", TUNGETVNETBE);
+    printf("TunIoctl TUNSETSTEERINGEBPF %ld\n", TUNSETSTEERINGEBPF);
+    printf("TunIoctl TUNSETFILTEREBPF %ld\n", TUNSETFILTEREBPF);
+    printf("TunIoctl TUNSETCARRIER %ld\n", TUNSETCARRIER);
+    printf("TunIoctl TUNGETDEVNETNS %u\n", TUNGETDEVNETNS);
 
     // TunIffFlag
     printf("TunIffFlag IFF_TUN %d\n", IFF_TUN);
@@ -299,6 +299,9 @@ int main(int argc, char *argv[]) {
     printf("TunIffFlag IFF_ONE_QUEUE %d\n", IFF_ONE_QUEUE);
     printf("TunIffFlag IFF_VNET_HDR %d\n", IFF_VNET_HDR);
     printf("TunIffFlag IFF_TUN_EXCL %d\n", IFF_TUN_EXCL);
+
+    // Misc
+    printf("Misc IFNAMSIZ %d\n", IFNAMSIZ);
 
     return 0;
 }
