@@ -148,6 +148,39 @@ int main(int argc, char *argv[]) {
     printf("RTNType RTN_NAT %d\n", RTN_NAT);
     printf("RTNType RTN_XRESOLVE %d\n", RTN_XRESOLVE);
 
+    // RTAType
+    printf("RTAType RTA_UNSPEC %d\n", RTA_UNSPEC);
+    printf("RTAType RTA_DST %d\n", RTA_DST);
+    printf("RTAType RTA_SRC %d\n", RTA_SRC);
+    printf("RTAType RTA_IIF %d\n", RTA_IIF);
+    printf("RTAType RTA_OIF %d\n", RTA_OIF);
+    printf("RTAType RTA_GATEWAY %d\n", RTA_GATEWAY);
+    printf("RTAType RTA_PRIORITY %d\n", RTA_PRIORITY);
+    printf("RTAType RTA_PREFSRC %d\n", RTA_PREFSRC);
+    printf("RTAType RTA_METRICS %d\n", RTA_METRICS);
+    printf("RTAType RTA_MULTIPATH %d\n", RTA_MULTIPATH);
+    printf("RTAType RTA_PROTOINFO %d\n", RTA_PROTOINFO);
+    printf("RTAType RTA_FLOW %d\n", RTA_FLOW);
+    printf("RTAType RTA_CACHEINFO %d\n", RTA_CACHEINFO);
+    printf("RTAType RTA_SESSION %d\n", RTA_SESSION);
+    printf("RTAType RTA_MP_ALGO %d\n", RTA_MP_ALGO);
+    printf("RTAType RTA_TABLE %d\n", RTA_TABLE);
+    printf("RTAType RTA_MARK %d\n", RTA_MARK);
+    printf("RTAType RTA_MFC_STATS %d\n", RTA_MFC_STATS);
+    printf("RTAType RTA_VIA %d\n", RTA_VIA);
+    printf("RTAType RTA_NEWDST %d\n", RTA_NEWDST);
+    printf("RTAType RTA_PREF %d\n", RTA_PREF);
+    printf("RTAType RTA_ENCAP_TYPE %d\n", RTA_ENCAP_TYPE);
+    printf("RTAType RTA_ENCAP %d\n", RTA_ENCAP);
+    printf("RTAType RTA_EXPIRES %d\n", RTA_EXPIRES);
+    printf("RTAType RTA_PAD %d\n", RTA_PAD);
+    printf("RTAType RTA_UID %d\n", RTA_UID);
+    printf("RTAType RTA_TTL_PROPAGATE %d\n", RTA_TTL_PROPAGATE);
+    printf("RTAType RTA_IP_PROTO %d\n", RTA_IP_PROTO);
+    printf("RTAType RTA_SPORT %d\n", RTA_SPORT);
+    printf("RTAType RTA_DPORT %d\n", RTA_DPORT);
+    printf("RTAType RTA_NH_ID %d\n", RTA_NH_ID);
+
     // ARPHRDType
     printf("ARPHRDType ARPHRD_ETHER %d\n", ARPHRD_ETHER);
     printf("ARPHRDType ARPHRD_NONE %d\n", ARPHRD_NONE);

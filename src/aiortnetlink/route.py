@@ -28,11 +28,11 @@ class RTAType(IntEnum):
     PREFSRC: Final = 7
     METRICS: Final = 8
     MULTIPATH: Final = 9
-    PROTOINFO: Final = 10  # no longer used
+    PROTOINFO: Final = 10
     FLOW: Final = 11
     CACHEINFO: Final = 12
-    SESSION: Final = 13  # no longer used
-    MP_ALGO: Final = 14  # no longer used
+    SESSION: Final = 13
+    MP_ALGO: Final = 14
     TABLE: Final = 15
     MARK: Final = 16
     MFC_STATS: Final = 17
@@ -50,6 +50,10 @@ class RTAType(IntEnum):
     DPORT: Final = 29
     NH_ID: Final = 30
 
+    @property
+    def constant_name(self) -> str:
+        return f"RTA_{self.name}"
+
 
 class RTNType(IntEnum):
     UNSPEC: Final = 0
@@ -64,6 +68,10 @@ class RTNType(IntEnum):
     THROW: Final = 9
     NAT: Final = 10
     XRESOLVE: Final = 11
+
+    @property
+    def constant_name(self) -> str:
+        return f"RTN_{self.name}"
 
 
 class ICMPv6RouterPref(IntEnum):

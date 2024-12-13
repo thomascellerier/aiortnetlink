@@ -81,6 +81,40 @@ route_types = [
 ]
 
 
+rta_types = [
+    "RTA_UNSPEC",
+    "RTA_DST",
+    "RTA_SRC",
+    "RTA_IIF",
+    "RTA_OIF",
+    "RTA_GATEWAY",
+    "RTA_PRIORITY",
+    "RTA_PREFSRC",
+    "RTA_METRICS",
+    "RTA_MULTIPATH",
+    "RTA_PROTOINFO",
+    "RTA_FLOW",
+    "RTA_CACHEINFO",
+    "RTA_SESSION",
+    "RTA_MP_ALGO",
+    "RTA_TABLE",
+    "RTA_MARK",
+    "RTA_MFC_STATS",
+    "RTA_VIA",
+    "RTA_NEWDST",
+    "RTA_PREF",
+    "RTA_ENCAP_TYPE",
+    "RTA_ENCAP",
+    "RTA_EXPIRES",
+    "RTA_PAD",
+    "RTA_UID",
+    "RTA_TTL_PROPAGATE",
+    "RTA_IP_PROTO",
+    "RTA_SPORT",
+    "RTA_DPORT",
+    "RTA_NH_ID",
+]
+
 arphrd_types = [
     "ARPHRD_ETHER",
     "ARPHRD_NONE",
@@ -298,6 +332,14 @@ class TypeSpec:
     includes: list[str] = field(default_factory=list)
     printf_specifier: Callable[[str], str] = lambda _: "%d"
 
+    def __post_init__(self) -> None:
+        for constant in self.constants:
+            if not constant.startswith(self.prefix):
+                raise ValueError(
+                    f"Invalid constant {constant} to type spec {self.name}, "
+                    f"constant does not start with prefix {self.prefix}"
+                )
+
 
 constants = [
     TypeSpec(
@@ -326,6 +368,7 @@ constants = [
         "RTNLFamily", "RTNL_FAMILY_", rtnl_family, includes=["<linux/rtnetlink.h>"]
     ),
     TypeSpec("RTNType", "RTN_", route_types, includes=["<linux/rtnetlink.h>"]),
+    TypeSpec("RTAType", "RTA_", rta_types, includes=["<linux/rtnetlink.h>"]),
     TypeSpec("ARPHRDType", "ARPHRD_", arphrd_types, includes=["<linux/if_arp.h>"]),
     TypeSpec("IFLAType", "IFLA_", ifla_types, includes=["<linux/if.h>"]),
     TypeSpec("IFFlag", "IFF_", if_flags, flag=True, includes=["<linux/if.h>"]),
