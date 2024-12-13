@@ -365,8 +365,8 @@ int main(int argc, char *argv[]) {
     printf("TunIffFlag IFF_VNET_HDR %d\n", IFF_VNET_HDR);
     printf("TunIffFlag IFF_TUN_EXCL %d\n", IFF_TUN_EXCL);
 
-    // Misc
-    printf("Misc IFNAMSIZ %d\n", IFNAMSIZ);
+    // MiscConstants
+    printf("MiscConstants IFNAMSIZ %d\n", IFNAMSIZ);
 
     return 0;
 }
