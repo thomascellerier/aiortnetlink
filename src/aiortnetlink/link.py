@@ -13,9 +13,15 @@ from aiortnetlink.rtm import RTMType
 
 __all__ = ["IFLink", "IFLAType", "IFFlag", "ifinfomsg"]
 
-ARPHRD_ETHER: Final = 1
-ARPHRD_NONE: Final = 0xFFFE
-ARPHRD_LOOPBACK: Final = 772
+
+class ARPHRDType(IntEnum):
+    ETHER: Final = 1
+    NONE: Final = 65534
+    LOOPBACK: Final = 772
+
+@property
+def constant_name(self) -> str:
+    return f"ARPHRD_{self.name}"
 
 
 class IFLAType(IntEnum):
@@ -206,11 +212,7 @@ class IFLink:
         return get_link_request(ifi_index, ifi_name)
 
     def friendly_footer_str(self) -> str:
-        link_type = {
-            ARPHRD_ETHER: "ether",
-            ARPHRD_LOOPBACK: "loopback",
-            ARPHRD_NONE: "none",
-        }.get(self.if_type, str(self.if_type))
+        link_type = ARPHRDType(self.if_type).name.lower()
         parts = [f"link/{link_type}"]
 
         if self.address is not None:

@@ -1,11 +1,9 @@
-#include <asm/types.h>
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h>
 #include <linux/genetlink.h>
 #include <linux/icmpv6.h>
 #include <linux/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
+#include <linux/if_arp.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
@@ -142,6 +140,11 @@ int main(int argc, char *argv[]) {
     printf("RTNType RTN_THROW %d\n", RTN_THROW);
     printf("RTNType RTN_NAT %d\n", RTN_NAT);
     printf("RTNType RTN_XRESOLVE %d\n", RTN_XRESOLVE);
+
+    // ARPHRDType
+    printf("ARPHRDType ARPHRD_ETHER %d\n", ARPHRD_ETHER);
+    printf("ARPHRDType ARPHRD_NONE %d\n", ARPHRD_NONE);
+    printf("ARPHRDType ARPHRD_LOOPBACK %d\n", ARPHRD_LOOPBACK);
 
     // IFLAType
     printf("IFLAType IFLA_UNSPEC %d\n", IFLA_UNSPEC);

@@ -10,7 +10,7 @@ import textwrap
 import typing
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 netlink_families = [
@@ -73,6 +73,13 @@ route_types = [
     "RTN_THROW",
     "RTN_NAT",
     "RTN_XRESOLVE",
+]
+
+
+arphrd_types = [
+    "ARPHRD_ETHER",
+    "ARPHRD_NONE",
+    "ARPHRD_LOOPBACK",
 ]
 
 ifla_types = [
@@ -212,25 +219,28 @@ class TypeSpec:
     constants: list[str]
     is_macro: bool = False
     flag: bool = False
+    includes: list[str] = field(default_factory=list)
 
 
 constants = [
-    TypeSpec("NLFamily", "NETLINK_", netlink_families, is_macro=True),
-    TypeSpec("NLMsgType", "NLMSG_", netlink_msg_types, is_macro=True),
-    TypeSpec("NLFlag", "NLM_F_", netlink_flags, is_macro=True, flag=True),
-    TypeSpec("RTNType", "RTN_", route_types),
-    TypeSpec("IFLAType", "IFLA_", ifla_types),
-    TypeSpec("IFFlag", "IFF_", if_flags, flag=True),
-    TypeSpec("IFAType", "IFA_", ifa_types),
-    TypeSpec("IFAFlag", "IFA_F_", ifa_flags, flag=True),
+    TypeSpec("NLFamily", "NETLINK_", netlink_families, is_macro=True, includes=["<linux/netlink.h>"]),
+    TypeSpec("NLMsgType", "NLMSG_", netlink_msg_types, is_macro=True, includes=["<linux/netlink.h>"]),
+    TypeSpec("NLFlag", "NLM_F_", netlink_flags, is_macro=True, flag=True, includes=["<linux/netlink.h>"]),
+    TypeSpec("RTNType", "RTN_", route_types, includes=["<linux/rtnetlink.h>"]),
+    TypeSpec("ARPHRDType", "ARPHRD_", arphrd_types, includes=["<linux/if_arp.h>"]),
+    TypeSpec("IFLAType", "IFLA_", ifla_types, includes=["<linux/if.h>"]),
+    TypeSpec("IFFlag", "IFF_", if_flags, flag=True, includes=["<linux/if.h>"]),
+    TypeSpec("IFAType", "IFA_", ifa_types, includes=["<linux/if.h>"]),
+    TypeSpec("IFAFlag", "IFA_F_", ifa_flags, flag=True, includes=["<linux/if.h>"]),
     TypeSpec(
         "ICMPv6RouterPref",
         "ICMPV6_ROUTER_PREF_",
         icmpv6_router_prefs,
         flag=True,
+        includes=["<linux/icmpv6.h>"],
     ),
-    TypeSpec("CtrlCmd", "CTRL_CMD_", ctrl_cmds),
-    TypeSpec("CtrlAttr", "CTRL_ATTR_", ctrl_attrs),
+    TypeSpec("CtrlCmd", "CTRL_CMD_", ctrl_cmds, includes=["<linux/genetlink.h>"]),
+    TypeSpec("CtrlAttr", "CTRL_ATTR_", ctrl_attrs, includes=["<linux/genetlink.h>"]),
 ]
 
 
@@ -245,16 +255,18 @@ def generate_program(name: str = "gen_constants") -> Path:
     """
     program = (Path(__file__).parent.resolve() / name).with_suffix(".c")
     with open(program, "wt") as f:
+        includes = {
+            "<stdio.h>",
+        }
+        includes |= {
+            include
+            for ts in constants
+            for include in ts.includes
+        }
+        for include in sorted(includes):
+            f.write(f"#include {include}\n")
+        # TODO: Should each typespec define it's includes?
         f.write("""\
-#include <asm/types.h>
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h>
-#include <linux/genetlink.h>
-#include <linux/icmpv6.h>
-#include <linux/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <stdio.h>
 
 int main(int argc, char *argv[]) {
 """)
