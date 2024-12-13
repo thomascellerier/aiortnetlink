@@ -211,6 +211,41 @@ ctrl_attrs = [
     "CTRL_ATTR_MCAST_GROUPS",
 ]
 
+tun_ioctls = [
+    "TUNSETNOCSUM",
+    "TUNSETDEBUG",
+    "TUNSETIFF",
+    "TUNSETPERSIST",
+    "TUNSETOWNER",
+    "TUNSETLINK",
+    "TUNSETGROUP",
+    "TUNGETFEATURES",
+    "TUNSETOFFLOAD",
+    "TUNSETTXFILTER",
+    "TUNGETIFF",
+    "TUNGETSNDBUF",
+    "TUNSETSNDBUF",
+    "TUNATTACHFILTER",
+    "TUNDETACHFILTER",
+    "TUNGETVNETHDRSZ",
+    "TUNSETVNETHDRSZ",
+    "TUNSETVNETBE",
+    "TUNGETVNETBE",
+    "TUNSETSTEERINGEBPF",
+    "TUNSETFILTEREBPF",
+    "TUNSETCARRIER",
+    "TUNGETDEVNETNS",
+]
+
+tun_iff_flags = [
+    "IFF_TUN",
+    "IFF_TAP",
+    "IFF_NO_PI",
+    "IFF_ONE_QUEUE",
+    "IFF_VNET_HDR",
+    "IFF_TUN_EXCL",
+]
+
 
 @dataclass
 class TypeSpec:
@@ -219,13 +254,34 @@ class TypeSpec:
     constants: list[str]
     is_macro: bool = False
     flag: bool = False
+    hex: bool = False
     includes: list[str] = field(default_factory=list)
+    printf_specifier: typing.Literal["%d", "%ld"] = "%d"
 
 
 constants = [
-    TypeSpec("NLFamily", "NETLINK_", netlink_families, is_macro=True, includes=["<linux/netlink.h>"]),
-    TypeSpec("NLMsgType", "NLMSG_", netlink_msg_types, is_macro=True, includes=["<linux/netlink.h>"]),
-    TypeSpec("NLFlag", "NLM_F_", netlink_flags, is_macro=True, flag=True, includes=["<linux/netlink.h>"]),
+    TypeSpec(
+        "NLFamily",
+        "NETLINK_",
+        netlink_families,
+        is_macro=True,
+        includes=["<linux/netlink.h>"],
+    ),
+    TypeSpec(
+        "NLMsgType",
+        "NLMSG_",
+        netlink_msg_types,
+        is_macro=True,
+        includes=["<linux/netlink.h>"],
+    ),
+    TypeSpec(
+        "NLFlag",
+        "NLM_F_",
+        netlink_flags,
+        is_macro=True,
+        flag=True,
+        includes=["<linux/netlink.h>"],
+    ),
     TypeSpec("RTNType", "RTN_", route_types, includes=["<linux/rtnetlink.h>"]),
     TypeSpec("ARPHRDType", "ARPHRD_", arphrd_types, includes=["<linux/if_arp.h>"]),
     TypeSpec("IFLAType", "IFLA_", ifla_types, includes=["<linux/if.h>"]),
@@ -241,6 +297,22 @@ constants = [
     ),
     TypeSpec("CtrlCmd", "CTRL_CMD_", ctrl_cmds, includes=["<linux/genetlink.h>"]),
     TypeSpec("CtrlAttr", "CTRL_ATTR_", ctrl_attrs, includes=["<linux/genetlink.h>"]),
+    TypeSpec(
+        "TunIoctl",
+        "TUN",
+        tun_ioctls,
+        hex=True,
+        printf_specifier="%d",
+        includes=["<sys/ioctl.h>", "<linux/if_tun.h>"],
+    ),
+    TypeSpec(
+        "TunIffFlag",
+        "IFF_",
+        tun_iff_flags,
+        flag=True,
+        printf_specifier="%d",
+        includes=["<linux/if_tun.h>"],
+    ),
 ]
 
 
@@ -258,11 +330,7 @@ def generate_program(name: str = "gen_constants") -> Path:
         includes = {
             "<stdio.h>",
         }
-        includes |= {
-            include
-            for ts in constants
-            for include in ts.includes
-        }
+        includes |= {include for ts in constants for include in ts.includes}
         for include in sorted(includes):
             f.write(f"#include {include}\n")
         # TODO: Should each typespec define it's includes?
@@ -276,7 +344,7 @@ int main(int argc, char *argv[]) {
                 if type_spec.is_macro:
                     f.write(f"#ifdef {constant}\n")
                 f.write(
-                    f'    printf("{type_spec.name} {constant} %d\\n", {constant});\n'
+                    f'    printf("{type_spec.name} {constant} {type_spec.printf_specifier}\\n", {constant});\n'
                 )
                 if type_spec.is_macro:
                     f.write("#endif\n")
@@ -342,6 +410,8 @@ def print_result(
                 else:
                     # Not a bit shift, could be a combination of other flags.
                     value_str = hex(constant_value)
+            elif type_spec.hex:
+                value_str = hex(constant_value)
             else:
                 value_str = str(constant_value)
             print(
@@ -349,13 +419,16 @@ def print_result(
                 file=f,
             )
         print(
-            textwrap.dedent(
-                f"""\
+            textwrap.indent(
+                textwrap.dedent(
+                    f"""\
 
                     @property
                     def constant_name(self) -> str:
                         return f"{type_spec.prefix}{{self.name}}"
                 """
+                ),
+                prefix=" " * 4,
             ),
             file=f,
         )

@@ -2,50 +2,54 @@ import fcntl
 import os
 import struct
 import typing
+from enum import IntEnum
 from typing import Final, Literal
 
 __all__ = ["create_tuntap", "delete_tuntap"]
 
 
-_IOC_NRBITS: Final = 8
-_IOC_TYPEBITS: Final = 8
-_IOC_SIZEBITS: Final = 14
-_IOC_DIRBITS: Final = 2
+class TunIoctl(IntEnum):
+    SETNOCSUM: Final = 0x400454C8
+    SETDEBUG: Final = 0x400454C9
+    SETIFF: Final = 0x400454CA
+    SETPERSIST: Final = 0x400454CB
+    SETOWNER: Final = 0x400454CC
+    SETLINK: Final = 0x400454CD
+    SETGROUP: Final = 0x400454CE
+    GETFEATURES: Final = -0x7FFBAB31
+    SETOFFLOAD: Final = 0x400454D0
+    SETTXFILTER: Final = 0x400454D1
+    GETIFF: Final = -0x7FFBAB2E
+    GETSNDBUF: Final = -0x7FFBAB2D
+    SETSNDBUF: Final = 0x400454D4
+    ATTACHFILTER: Final = 0x401054D5
+    DETACHFILTER: Final = 0x401054D6
+    GETVNETHDRSZ: Final = -0x7FFBAB29
+    SETVNETHDRSZ: Final = 0x400454D8
+    SETVNETBE: Final = 0x400454DE
+    GETVNETBE: Final = -0x7FFBAB21
+    SETSTEERINGEBPF: Final = -0x7FFBAB20
+    SETFILTEREBPF: Final = -0x7FFBAB1F
+    SETCARRIER: Final = 0x400454E2
+    GETDEVNETNS: Final = 0x54E3
 
-_IOC_NRSHIFT: Final = 0
-_IOC_TYPESHIFT: Final = _IOC_NRSHIFT + _IOC_NRBITS
-_IOC_SIZESHIFT: Final = _IOC_TYPESHIFT + _IOC_TYPEBITS
-_IOC_DIRSHIFT: Final = _IOC_SIZESHIFT + _IOC_SIZEBITS
-
-IOC_WRITE: Final = 1
-IOC_READ: Final = 2
+    @property
+    def constant_name(self) -> str:
+        return f"TUN{self.name}"
 
 
-def _ioc(dir_: int, type_: int, nr: int, size: int) -> int:
-    return (
-        (dir_ << _IOC_DIRSHIFT)
-        | (type_ << _IOC_TYPESHIFT)
-        | (nr << _IOC_NRSHIFT)
-        | (size << _IOC_SIZESHIFT)
-    )
+class TunIffFlag(IntEnum):
+    TUN: Final = 1 << 0
+    TAP: Final = 1 << 1
+    NO_PI: Final = 1 << 12
+    ONE_QUEUE: Final = 1 << 13
+    VNET_HDR: Final = 1 << 14
+    TUN_EXCL: Final = 1 << 15
 
+    @property
+    def constant_name(self) -> str:
+        return f"IFF_{self.name}"
 
-def _iow(type_: int, nr: int, size: int) -> int:
-    return _ioc(IOC_WRITE, type_, nr, size)
-
-
-def _ior(type_: int, nr: int, size: int) -> int:
-    return _ioc(IOC_READ, type_, nr, size)
-
-
-TUNSETIFF: Final = _iow(ord("T"), 202, struct.calcsize("i"))
-TUNSETPERSIST: Final = _iow(ord("T"), 203, struct.calcsize("i"))
-TUNSETOWNER: Final = _iow(ord("T"), 204, struct.calcsize("i"))
-TUNSETGROUP: Final = _iow(ord("T"), 206, struct.calcsize("i"))
-TUNGETIFF: Final = _ior(ord("T"), 210, struct.calcsize("I"))
-
-IFF_TUN: Final = 0x0001
-IFF_TAP: Final = 0x0002
 
 IFNAMSIZ: Final = 16
 
@@ -61,9 +65,9 @@ def _ifreq_setiff(name: str, mode: Literal["tun", "tap"]) -> bytes:
     flags = 0
     match mode:
         case "tun":
-            flags |= IFF_TUN
+            flags |= TunIffFlag.TUN
         case "tap":
-            flags |= IFF_TAP
+            flags |= TunIffFlag.TAP
         case unreachable:
             typing.assert_never(unreachable)
     return _IFReq.pack(name.encode("ascii"), flags)
@@ -79,12 +83,12 @@ def create_tuntap(
 ) -> None:
     with open(dev_tun_path, "rb") as f:
         fd = f.fileno()
-        fcntl.ioctl(fd, TUNSETIFF, _ifreq_setiff(name, mode))
+        fcntl.ioctl(fd, TunIoctl.SETIFF, _ifreq_setiff(name, mode))
         if uid is not None:
-            fcntl.ioctl(fd, TUNSETOWNER, uid)
+            fcntl.ioctl(fd, TunIoctl.SETOWNER, uid)
         if gid is not None:
-            fcntl.ioctl(fd, TUNSETGROUP, gid)
-        fcntl.ioctl(fd, TUNSETPERSIST, 1)
+            fcntl.ioctl(fd, TunIoctl.SETGROUP, gid)
+        fcntl.ioctl(fd, TunIoctl.SETPERSIST, 1)
 
 
 def delete_tuntap(
@@ -95,5 +99,5 @@ def delete_tuntap(
 ) -> None:
     with open(dev_tun_path, "rb") as f:
         fd = f.fileno()
-        fcntl.ioctl(fd, TUNSETIFF, _ifreq_setiff(name, mode))
-        fcntl.ioctl(fd, TUNSETPERSIST, 0)
+        fcntl.ioctl(fd, TunIoctl.SETIFF, _ifreq_setiff(name, mode))
+        fcntl.ioctl(fd, TunIoctl.SETPERSIST, 0)

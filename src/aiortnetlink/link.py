@@ -19,9 +19,9 @@ class ARPHRDType(IntEnum):
     NONE: Final = 65534
     LOOPBACK: Final = 772
 
-@property
-def constant_name(self) -> str:
-    return f"ARPHRD_{self.name}"
+    @property
+    def constant_name(self) -> str:
+        return f"ARPHRD_{self.name}"
 
 
 class IFLAType(IntEnum):
