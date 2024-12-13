@@ -316,6 +316,20 @@ int main(int argc, char *argv[]) {
     printf("IFFlag IFF_DORMANT %d\n", IFF_DORMANT);
     printf("IFFlag IFF_ECHO %d\n", IFF_ECHO);
 
+    // IFOper
+    printf("IFOper IF_OPER_UNKNOWN %d\n", IF_OPER_UNKNOWN);
+    printf("IFOper IF_OPER_NOTPRESENT %d\n", IF_OPER_NOTPRESENT);
+    printf("IFOper IF_OPER_DOWN %d\n", IF_OPER_DOWN);
+    printf("IFOper IF_OPER_LOWERLAYERDOWN %d\n", IF_OPER_LOWERLAYERDOWN);
+    printf("IFOper IF_OPER_TESTING %d\n", IF_OPER_TESTING);
+    printf("IFOper IF_OPER_DORMANT %d\n", IF_OPER_DORMANT);
+    printf("IFOper IF_OPER_UP %d\n", IF_OPER_UP);
+
+    // IFLinkMode
+    printf("IFLinkMode IF_LINK_MODE_DEFAULT %d\n", IF_LINK_MODE_DEFAULT);
+    printf("IFLinkMode IF_LINK_MODE_DORMANT %d\n", IF_LINK_MODE_DORMANT);
+    printf("IFLinkMode IF_LINK_MODE_TESTING %d\n", IF_LINK_MODE_TESTING);
+
     // IFAType
     printf("IFAType IFA_UNSPEC %d\n", IFA_UNSPEC);
     printf("IFAType IFA_ADDRESS %d\n", IFA_ADDRESS);

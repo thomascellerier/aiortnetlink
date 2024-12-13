@@ -254,6 +254,22 @@ if_flags = [
     "IFF_ECHO",
 ]
 
+if_oper_states = [
+    "IF_OPER_UNKNOWN",
+    "IF_OPER_NOTPRESENT",
+    "IF_OPER_DOWN",
+    "IF_OPER_LOWERLAYERDOWN",
+    "IF_OPER_TESTING",
+    "IF_OPER_DORMANT",
+    "IF_OPER_UP",
+]
+
+if_link_modes = [
+    "IF_LINK_MODE_DEFAULT",
+    "IF_LINK_MODE_DORMANT",
+    "IF_LINK_MODE_TESTING",
+]
+
 ifa_types = [
     "IFA_UNSPEC",
     "IFA_ADDRESS",
@@ -442,6 +458,16 @@ constants = [
     TypeSpec("ARPHRDType", "ARPHRD_", arphrd_types, includes=["<linux/if_arp.h>"]),
     TypeSpec("IFLAType", "IFLA_", ifla_types, includes=["<linux/if.h>"]),
     TypeSpec("IFFlag", "IFF_", if_flags, flag=True, includes=["<linux/if.h>"]),
+    TypeSpec(
+        "IFOper", "IF_OPER_", if_oper_states, flag=True, includes=["<linux/if.h>"]
+    ),
+    TypeSpec(
+        "IFLinkMode",
+        "IF_LINK_MODE_",
+        if_link_modes,
+        flag=True,
+        includes=["<linux/if.h>"],
+    ),
     TypeSpec("IFAType", "IFA_", ifa_types, includes=["<linux/if.h>"]),
     TypeSpec("IFAFlag", "IFA_F_", ifa_flags, flag=True, includes=["<linux/if.h>"]),
     TypeSpec(

@@ -1,11 +1,12 @@
 import struct
 from dataclasses import dataclass
-from enum import IntEnum
 from typing import Callable, Final
 
 from aiortnetlink.constants.arphrdtype import ARPHRDType
 from aiortnetlink.constants.ifflag import IFFlag
 from aiortnetlink.constants.iflatype import IFLAType
+from aiortnetlink.constants.iflinkmode import IFLinkMode
+from aiortnetlink.constants.ifoper import IFOper
 from aiortnetlink.constants.nlflag import NLFlag
 from aiortnetlink.constants.rtmtype import RTMType
 from aiortnetlink.netlink import (
@@ -14,25 +15,7 @@ from aiortnetlink.netlink import (
     encode_nlattr_str,
 )
 
-__all__ = ["IFLink", "ifinfomsg"]
-
-
-class IFOper(IntEnum):
-    # TODO: GENERATE
-    UNKNOWN: Final = 0
-    NOTPRESENT: Final = 1
-    DOWN: Final = 2
-    LOWERLAYERDOWN: Final = 3
-    TESTING: Final = 4
-    DORMANT: Final = 5
-    UP: Final = 6
-
-
-class IFLinkMode(IntEnum):
-    # TODO: GENERATE
-    DEFAULT: Final = 0
-    DORMANT: Final = 1
-    TESTING: Final = 2
+__all__ = ["IFLink"]
 
 
 IFInfoMsg: Final = struct.Struct(
