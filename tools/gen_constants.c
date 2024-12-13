@@ -1,6 +1,7 @@
 #include <asm/types.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#include <linux/genetlink.h>
 #include <linux/icmpv6.h>
 #include <linux/if.h>
 #include <sys/ioctl.h>
@@ -215,6 +216,18 @@ int main(int argc, char *argv[]) {
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_MEDIUM %d\n", ICMPV6_ROUTER_PREF_MEDIUM);
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_HIGH %d\n", ICMPV6_ROUTER_PREF_HIGH);
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_INVALID %d\n", ICMPV6_ROUTER_PREF_INVALID);
+
+    // CtrlCmd
+    printf("CtrlCmd CTRL_CMD_UNSPEC %d\n", CTRL_CMD_UNSPEC);
+    printf("CtrlCmd CTRL_CMD_NEWFAMILY %d\n", CTRL_CMD_NEWFAMILY);
+    printf("CtrlCmd CTRL_CMD_DELFAMILY %d\n", CTRL_CMD_DELFAMILY);
+    printf("CtrlCmd CTRL_CMD_GETFAMILY %d\n", CTRL_CMD_GETFAMILY);
+    printf("CtrlCmd CTRL_CMD_NEWOPS %d\n", CTRL_CMD_NEWOPS);
+    printf("CtrlCmd CTRL_CMD_DELOPS %d\n", CTRL_CMD_DELOPS);
+    printf("CtrlCmd CTRL_CMD_GETOPS %d\n", CTRL_CMD_GETOPS);
+    printf("CtrlCmd CTRL_CMD_NEWMCAST_GRP %d\n", CTRL_CMD_NEWMCAST_GRP);
+    printf("CtrlCmd CTRL_CMD_DELMCAST_GRP %d\n", CTRL_CMD_DELMCAST_GRP);
+    printf("CtrlCmd CTRL_CMD_GETMCAST_GRP %d\n", CTRL_CMD_GETMCAST_GRP);
 
     return 0;
 }

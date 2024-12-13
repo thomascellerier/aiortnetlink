@@ -163,6 +163,20 @@ icmpv6_router_prefs = [
     "ICMPV6_ROUTER_PREF_INVALID",
 ]
 
+gen_cmds = [
+    "CTRL_CMD_UNSPEC",
+    "CTRL_CMD_NEWFAMILY",
+    "CTRL_CMD_DELFAMILY",
+    "CTRL_CMD_GETFAMILY",
+    "CTRL_CMD_NEWOPS",
+    "CTRL_CMD_DELOPS",
+    "CTRL_CMD_GETOPS",
+    "CTRL_CMD_NEWMCAST_GRP",
+    "CTRL_CMD_DELMCAST_GRP",
+    "CTRL_CMD_GETMCAST_GRP",
+
+]
+
 
 @dataclass
 class TypeSpec:
@@ -187,6 +201,7 @@ constants = [
         icmpv6_router_prefs,
         flag=True,
     ),
+    TypeSpec("CtrlCmd", "CTRL_CMD_", gen_cmds),
 ]
 
 
@@ -205,6 +220,7 @@ def generate_program(name: str = "gen_constants") -> Path:
 #include <asm/types.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#include <linux/genetlink.h>
 #include <linux/icmpv6.h>
 #include <linux/if.h>
 #include <sys/ioctl.h>
