@@ -34,14 +34,23 @@ class FRAType(IntEnum):
     UNUSED5: Final = 9
     FWMARK: Final = 10
     FLOW: Final = 11
-    UNUSED6: Final = 12
-    SUPPRESS_IFGROUP: Final = 12
-    SUPPRESS_PREFIXLEN: Final = 13
-    TABLE: Final = 14
-    FWMASK: Final = 15
-    OIFNAME: Final = 16
-    UID_START: Final = 17
-    UID_END: Final = 18
+    TUN_ID: Final = 12
+    SUPPRESS_IFGROUP: Final = 13
+    SUPPRESS_PREFIXLEN: Final = 14
+    TABLE: Final = 15
+    FWMASK: Final = 16
+    OIFNAME: Final = 17
+    PAD: Final = 18
+    L3MDEV: Final = 19
+    UID_RANGE: Final = 20
+    PROTOCOL: Final = 21
+    IP_PROTO: Final = 22
+    SPORT_RANGE: Final = 23
+    DPORT_RANGE: Final = 24
+
+    @property
+    def constant_name(self) -> str:
+        return f"FRA_{self.name}"
 
 
 def get_rule_request() -> NetlinkRequest:

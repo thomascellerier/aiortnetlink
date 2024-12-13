@@ -190,6 +190,36 @@ icmpv6_router_prefs = [
     "ICMPV6_ROUTER_PREF_INVALID",
 ]
 
+fra_types = [
+    "FRA_UNSPEC",
+    "FRA_DST",
+    "FRA_SRC",
+    "FRA_IIFNAME",
+    "FRA_GOTO",
+    "FRA_UNUSED2",
+    "FRA_PRIORITY",
+    "FRA_UNUSED3",
+    "FRA_UNUSED4",
+    "FRA_UNUSED5",
+    "FRA_FWMARK",
+    "FRA_FLOW",
+    "FRA_TUN_ID",
+    "FRA_SUPPRESS_IFGROUP",
+    "FRA_SUPPRESS_PREFIXLEN",
+    "FRA_TABLE",
+    "FRA_FWMASK",
+    "FRA_OIFNAME",
+    "FRA_PAD",
+    "FRA_L3MDEV",
+    "FRA_UID_RANGE",
+    "FRA_PROTOCOL",
+    "FRA_IP_PROTO",
+    "FRA_SPORT_RANGE",
+    "FRA_DPORT_RANGE",
+    # TODO: Truncate list based on value of FRA_MAX
+    # "FRA_DSCP",
+]
+
 
 ctrl_cmds = [
     "CTRL_CMD_UNSPEC",
@@ -308,6 +338,7 @@ constants = [
         flag=True,
         includes=["<linux/icmpv6.h>"],
     ),
+    TypeSpec("FRAType", "FRA_", fra_types, includes=["<linux/fib_rules.h>"]),
     TypeSpec("CtrlCmd", "CTRL_CMD_", ctrl_cmds, includes=["<linux/genetlink.h>"]),
     TypeSpec("CtrlAttr", "CTRL_ATTR_", ctrl_attrs, includes=["<linux/genetlink.h>"]),
     TypeSpec(

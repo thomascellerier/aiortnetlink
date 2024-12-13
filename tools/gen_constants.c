@@ -1,3 +1,4 @@
+#include <linux/fib_rules.h>
 #include <linux/genetlink.h>
 #include <linux/icmpv6.h>
 #include <linux/if.h>
@@ -248,6 +249,33 @@ int main(int argc, char *argv[]) {
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_MEDIUM %d\n", ICMPV6_ROUTER_PREF_MEDIUM);
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_HIGH %d\n", ICMPV6_ROUTER_PREF_HIGH);
     printf("ICMPv6RouterPref ICMPV6_ROUTER_PREF_INVALID %d\n", ICMPV6_ROUTER_PREF_INVALID);
+
+    // FRAType
+    printf("FRAType FRA_UNSPEC %d\n", FRA_UNSPEC);
+    printf("FRAType FRA_DST %d\n", FRA_DST);
+    printf("FRAType FRA_SRC %d\n", FRA_SRC);
+    printf("FRAType FRA_IIFNAME %d\n", FRA_IIFNAME);
+    printf("FRAType FRA_GOTO %d\n", FRA_GOTO);
+    printf("FRAType FRA_UNUSED2 %d\n", FRA_UNUSED2);
+    printf("FRAType FRA_PRIORITY %d\n", FRA_PRIORITY);
+    printf("FRAType FRA_UNUSED3 %d\n", FRA_UNUSED3);
+    printf("FRAType FRA_UNUSED4 %d\n", FRA_UNUSED4);
+    printf("FRAType FRA_UNUSED5 %d\n", FRA_UNUSED5);
+    printf("FRAType FRA_FWMARK %d\n", FRA_FWMARK);
+    printf("FRAType FRA_FLOW %d\n", FRA_FLOW);
+    printf("FRAType FRA_TUN_ID %d\n", FRA_TUN_ID);
+    printf("FRAType FRA_SUPPRESS_IFGROUP %d\n", FRA_SUPPRESS_IFGROUP);
+    printf("FRAType FRA_SUPPRESS_PREFIXLEN %d\n", FRA_SUPPRESS_PREFIXLEN);
+    printf("FRAType FRA_TABLE %d\n", FRA_TABLE);
+    printf("FRAType FRA_FWMASK %d\n", FRA_FWMASK);
+    printf("FRAType FRA_OIFNAME %d\n", FRA_OIFNAME);
+    printf("FRAType FRA_PAD %d\n", FRA_PAD);
+    printf("FRAType FRA_L3MDEV %d\n", FRA_L3MDEV);
+    printf("FRAType FRA_UID_RANGE %d\n", FRA_UID_RANGE);
+    printf("FRAType FRA_PROTOCOL %d\n", FRA_PROTOCOL);
+    printf("FRAType FRA_IP_PROTO %d\n", FRA_IP_PROTO);
+    printf("FRAType FRA_SPORT_RANGE %d\n", FRA_SPORT_RANGE);
+    printf("FRAType FRA_DPORT_RANGE %d\n", FRA_DPORT_RANGE);
 
     // CtrlCmd
     printf("CtrlCmd CTRL_CMD_UNSPEC %d\n", CTRL_CMD_UNSPEC);
