@@ -212,7 +212,10 @@ class IFLink:
         return get_link_request(ifi_index, ifi_name)
 
     def friendly_footer_str(self) -> str:
-        link_type = ARPHRDType(self.if_type).name.lower()
+        try:
+            link_type = ARPHRDType(self.if_type).name.lower()
+        except ValueError:
+            link_type = str(self.if_type)
         parts = [f"link/{link_type}"]
 
         if self.address is not None:
