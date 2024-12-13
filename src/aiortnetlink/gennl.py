@@ -7,10 +7,10 @@ from enum import IntEnum
 from typing import Final, Literal
 
 from aiortnetlink.netlink import (
-    NLMsgType,
     NetlinkRequest,
     NLAttr,
     NLFlag,
+    NLMsgType,
 )
 
 __all__ = ["get_family_request", "CtrlCmd"]

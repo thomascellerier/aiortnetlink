@@ -14,7 +14,6 @@ from aiortnetlink.lazy import (
     rule_type,
 )
 from aiortnetlink.netlink import (
-    NLMsgType,
     NetlinkDumpInterruptedError,
     NetlinkError,
     NetlinkOSError,
@@ -23,6 +22,7 @@ from aiortnetlink.netlink import (
     NetlinkValueError,
     NLFlag,
     NLMsg,
+    NLMsgType,
     create_netlink_endpoint,
     decode_nlmsg_error,
     encode_nlmsg,

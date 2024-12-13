@@ -5,6 +5,9 @@ Generate python enums from C constants.
 
 import argparse
 import subprocess
+import sys
+import textwrap
+import typing
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -231,9 +234,7 @@ constants = [
 ]
 
 
-def generate_program(
-    name: str = "gen_constants", filter_fn: Callable[[TypeSpec], bool] = lambda _: True
-) -> Path:
+def generate_program(name: str = "gen_constants") -> Path:
     """
     Generate program that prints out linux user API constant names with their matching value.
     The generated program is subject to the license of these headers.
@@ -258,8 +259,6 @@ def generate_program(
 int main(int argc, char *argv[]) {
 """)
         for type_spec in constants:
-            if not filter_fn(type_spec):
-                continue
             f.write(f"    // {type_spec.name}\n")
             for constant in type_spec.constants:
                 if type_spec.is_macro:
@@ -301,32 +300,27 @@ def run_binary(binary: Path) -> dict[str, dict[str, int]]:
     return values
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--type-name", default=None)
-    return parser.parse_args()
+def print_result(
+    constant_values: dict[str, dict[str, int]],
+    f: typing.TextIO,
+    filter_fn: Callable[[TypeSpec], bool],
+) -> None:
+    """
+    Print values as python source code representing IntEnum types
+    """
+    print(
+        textwrap.dedent("""\
+        from enum import IntEnum
+        from typing import Final
 
-
-def main() -> None:
-    args = parse_args()
-    if type_name := args.type_name:
-        filter_fn = lambda ts: ts.name == type_name
-    else:
-        filter_fn = lambda _: True
-    program = generate_program(filter_fn=filter_fn)
-    binary = compile_binary(program)
-    constant_values = run_binary(binary)
-
-    # Print values, here we could generate enum types directly!
-    print("""\
-from enum import IntEnum
-from typing import Final
-
-""")
+    """)
+    )
     type_spec_by_name = {type_spec.name: type_spec for type_spec in constants}
     for name, values in constant_values.items():
         type_spec = type_spec_by_name[name]
-        print(f"class {name}(IntEnum):")
+        if not filter_fn(type_spec):
+            continue
+        print(f"class {name}(IntEnum):", file=f)
         for constant_name, constant_value in values.items():
             if type_spec.flag:
                 bit_shift = constant_value.bit_length() - 1
@@ -339,15 +333,48 @@ from typing import Final
             else:
                 value_str = str(constant_value)
             print(
-                f"    {constant_name.removeprefix(type_spec.prefix)}: Final = {value_str}"
+                f"    {constant_name.removeprefix(type_spec.prefix)}: Final = {value_str}",
+                file=f,
             )
-        print(f"""\
+        print(
+            textwrap.dedent(
+                f"""\
 
-    @property
-    def constant_name(self) -> str:
-        return f"{type_spec.prefix}{{self.name}}"
-""")
-        print("\n")
+                    @property
+                    def constant_name(self) -> str:
+                        return f"{type_spec.prefix}{{self.name}}"
+                """
+            ),
+            file=f,
+        )
+        print("\n", file=f)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-t",
+        "--type-name",
+        default=None,
+        help="Type name to match, supports glob patterns",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+
+    if type_name := args.type_name:
+        import fnmatch
+
+        filter_fn = lambda ts: fnmatch.fnmatch(ts.name, type_name)
+    else:
+        filter_fn = lambda _: True
+
+    program = generate_program()
+    binary = compile_binary(program)
+    constant_values = run_binary(binary)
+    print_result(constant_values, sys.stdout, filter_fn)
 
 
 if __name__ == "__main__":
