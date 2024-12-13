@@ -9,10 +9,10 @@ __all__ = ["ICMPv6RouterPref"]
 
 
 class ICMPv6RouterPref(IntEnum):
-    LOW: Final = 0x3
-    MEDIUM: Final = 0x0
-    HIGH: Final = 1 << 0
-    INVALID: Final = 1 << 1
+    LOW: Final = 3
+    MEDIUM: Final = 0
+    HIGH: Final = 1
+    INVALID: Final = 2
 
     @property
     def constant_name(self) -> str:

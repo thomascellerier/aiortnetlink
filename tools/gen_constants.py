@@ -474,7 +474,6 @@ constants = [
         "ICMPv6RouterPref",
         "ICMPV6_ROUTER_PREF_",
         icmpv6_router_prefs,
-        flag=True,
         includes=["<linux/icmpv6.h>"],
     ),
     TypeSpec("FRAType", "FRA_", fra_types, includes=["<linux/fib_rules.h>"]),
