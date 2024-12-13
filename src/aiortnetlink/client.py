@@ -14,8 +14,7 @@ from aiortnetlink.lazy import (
     rule_type,
 )
 from aiortnetlink.netlink import (
-    NLMSG_DONE,
-    NLMSG_ERROR,
+    NLMsgType,
     NetlinkDumpInterruptedError,
     NetlinkError,
     NetlinkOSError,
@@ -86,7 +85,7 @@ class NetlinkClient:
         assert protocol is not None
         msg, group = await protocol.get()
 
-        if msg.msg_type == NLMSG_ERROR:
+        if msg.msg_type == NLMsgType.ERROR:
             nl_errno = decode_nlmsg_error(msg.data)
             if nl_errno != 0:
                 # A netlink acknowledgment is an NLMSG_ERROR packet with the error field set to 0.
@@ -157,12 +156,12 @@ class NetlinkClient:
             if msg.msg_type == msg_type:
                 yield msg, group
 
-            elif msg.msg_type == NLMSG_ERROR:
+            elif msg.msg_type == NLMsgType.ERROR:
                 # A netlink acknowledgment is an NLMSG_ERROR packet with the error field set to 0.
                 # Here we rely on the fact that self._recv_msg already handled non-zero errors.
                 break
 
-            elif msg.msg_type == NLMSG_DONE:
+            elif msg.msg_type == NLMsgType.DONE:
                 break
 
             else:

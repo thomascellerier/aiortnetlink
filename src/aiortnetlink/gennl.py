@@ -7,7 +7,7 @@ from enum import IntEnum
 from typing import Final, Literal
 
 from aiortnetlink.netlink import (
-    NLMSG_MIN_TYPE,
+    NLMsgType,
     NetlinkRequest,
     NLAttr,
     NLFlag,
@@ -16,7 +16,7 @@ from aiortnetlink.netlink import (
 __all__ = ["get_family_request", "CtrlCmd"]
 
 
-GENL_ID_CTRL: Final = NLMSG_MIN_TYPE
+GENL_ID_CTRL: Final = NLMsgType.MIN_TYPE
 
 
 class CtrlCmd(IntEnum):

@@ -11,15 +11,13 @@ from typing import Any, Final, Iterator, NamedTuple
 
 __all__ = [
     "NLFamily",
+    "NLMsgType",
     "NLFlag",
     "NetlinkOSError",
     "NetlinkValueError",
     "NetlinkDumpInterruptedError",
-    "NLMSG_ERROR",
     "decode_nlmsg_error",
-    "NLMSG_DONE",
     "NetlinkError",
-    "NLMSG_MIN_TYPE",
     "NetlinkProtocol",
     "create_netlink_endpoint",
     "decode_nlattr_int",
@@ -58,11 +56,16 @@ class NLFamily(IntEnum):
         return f"NETLINK_{self.name}"
 
 
-NLMSG_NOOP: Final = 0x1
-NLMSG_ERROR: Final = 0x2
-NLMSG_DONE: Final = 0x3
-NLMSG_OVERRUN: Final = 0x4
-NLMSG_MIN_TYPE: Final = 0x10
+class NLMsgType(IntEnum):
+    NOOP: Final = 1
+    ERROR: Final = 2
+    DONE: Final = 3
+    OVERRUN: Final = 4
+    MIN_TYPE: Final = 16
+
+    @property
+    def constant_name(self) -> str:
+        return f"NLMSG_{self.name}"
 
 
 class NLFlag(IntEnum):

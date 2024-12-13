@@ -32,6 +32,14 @@ netlink_families = [
     "NETLINK_CRYPTO",
 ]
 
+netlink_msg_types = [
+    "NLMSG_NOOP",
+    "NLMSG_ERROR",
+    "NLMSG_DONE",
+    "NLMSG_OVERRUN",
+    "NLMSG_MIN_TYPE",
+]
+
 netlink_flags = [
     "NLM_F_REQUEST",
     "NLM_F_MULTI",
@@ -205,6 +213,7 @@ class TypeSpec:
 
 constants = [
     TypeSpec("NLFamily", "NETLINK_", netlink_families, is_macro=True),
+    TypeSpec("NLMsgType", "NLMSG_", netlink_msg_types, is_macro=True),
     TypeSpec("NLFlag", "NLM_F_", netlink_flags, is_macro=True, flag=True),
     TypeSpec("RTNType", "RTN_", route_types),
     TypeSpec("IFLAType", "IFLA_", ifla_types),

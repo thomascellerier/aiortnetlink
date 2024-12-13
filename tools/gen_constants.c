@@ -68,6 +68,23 @@ int main(int argc, char *argv[]) {
     printf("NLFamily NETLINK_CRYPTO %d\n", NETLINK_CRYPTO);
 #endif
 
+    // NLMsgType
+#ifdef NLMSG_NOOP
+    printf("NLMsgType NLMSG_NOOP %d\n", NLMSG_NOOP);
+#endif
+#ifdef NLMSG_ERROR
+    printf("NLMsgType NLMSG_ERROR %d\n", NLMSG_ERROR);
+#endif
+#ifdef NLMSG_DONE
+    printf("NLMsgType NLMSG_DONE %d\n", NLMSG_DONE);
+#endif
+#ifdef NLMSG_OVERRUN
+    printf("NLMsgType NLMSG_OVERRUN %d\n", NLMSG_OVERRUN);
+#endif
+#ifdef NLMSG_MIN_TYPE
+    printf("NLMsgType NLMSG_MIN_TYPE %d\n", NLMSG_MIN_TYPE);
+#endif
+
     // NLFlag
 #ifdef NLM_F_REQUEST
     printf("NLFlag NLM_F_REQUEST %d\n", NLM_F_REQUEST);
