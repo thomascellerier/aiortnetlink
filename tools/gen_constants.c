@@ -129,6 +129,10 @@ int main(int argc, char *argv[]) {
     printf("NLFlag NLM_F_APPEND %d\n", NLM_F_APPEND);
 #endif
 
+    // RTNLFamily
+    printf("RTNLFamily RTNL_FAMILY_IPMR %d\n", RTNL_FAMILY_IPMR);
+    printf("RTNLFamily RTNL_FAMILY_IP6MR %d\n", RTNL_FAMILY_IP6MR);
+
     // RTNType
     printf("RTNType RTN_UNSPEC %d\n", RTN_UNSPEC);
     printf("RTNType RTN_UNICAST %d\n", RTN_UNICAST);

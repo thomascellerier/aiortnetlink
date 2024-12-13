@@ -60,6 +60,11 @@ netlink_flags = [
     "NLM_F_APPEND",
 ]
 
+rtnl_family = [
+    "RTNL_FAMILY_IPMR",
+    "RTNL_FAMILY_IP6MR",
+]
+
 route_types = [
     "RTN_UNSPEC",
     "RTN_UNICAST",
@@ -286,6 +291,9 @@ constants = [
         is_macro=True,
         flag=True,
         includes=["<linux/netlink.h>"],
+    ),
+    TypeSpec(
+        "RTNLFamily", "RTNL_FAMILY_", rtnl_family, includes=["<linux/rtnetlink.h>"]
     ),
     TypeSpec("RTNType", "RTN_", route_types, includes=["<linux/rtnetlink.h>"]),
     TypeSpec("ARPHRDType", "ARPHRD_", arphrd_types, includes=["<linux/if_arp.h>"]),

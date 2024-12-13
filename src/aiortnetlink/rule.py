@@ -12,8 +12,13 @@ from aiortnetlink.rtm import RTMType
 __all__ = ["Rule"]
 
 
-RTNL_FAMILY_IPMR: Final = 128
-RTNL_FAMILY_IP6MR: Final = 129
+class RTNLFamily(IntEnum):
+    IPMR: Final = 128
+    IP6MR: Final = 129
+
+    @property
+    def constant_name(self) -> str:
+        return f"RTNL_FAMILY_{self.name}"
 
 
 class FRAType(IntEnum):
