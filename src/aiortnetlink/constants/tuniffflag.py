@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["TunIffFlag"]
 
 
-class TunIffFlag(IntEnum):        
+class TunIffFlag(IntEnum):
     TUN: Final = 1 << 0
     TAP: Final = 1 << 1
     NO_PI: Final = 1 << 12
@@ -16,4 +16,3 @@ class TunIffFlag(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"IFF_{self.name}"
-

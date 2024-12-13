@@ -13,4 +13,3 @@ class ARPHRDType(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"ARPHRD_{self.name}"
-

@@ -48,7 +48,7 @@ strict = true
 # TODO: Switch to uv's task system once its implemented
 # See https://github.com/astral-sh/uv/issues/5903
 ruff-fmt = "uv run --group fmt ruff format src tests tools"
-ruff-fmt-check = "uv run --group fmt ruff format --check src tests tools"
+ruff-fmt-check = "uv run --group fmt ruff format --diff src tests tools"
 ruff-check = "uv run --group lint ruff check src tests tools"
 ruff-check-fix-imports = "uv run --group fmt ruff check --fix --select I src tests tools"
 ruff-check-fix = "uv run --group fmt ruff check --fix src tests tools"

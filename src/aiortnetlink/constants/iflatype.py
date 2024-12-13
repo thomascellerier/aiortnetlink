@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["IFLAType"]
 
 
-class IFLAType(IntEnum):        
+class IFLAType(IntEnum):
     UNSPEC: Final = 0
     ADDRESS: Final = 1
     BROADCAST: Final = 2
@@ -50,4 +50,3 @@ class IFLAType(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"IFLA_{self.name}"
-

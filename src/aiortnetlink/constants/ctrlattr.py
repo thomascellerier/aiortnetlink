@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["CtrlAttr"]
 
 
-class CtrlAttr(IntEnum):        
+class CtrlAttr(IntEnum):
     UNSPEC: Final = 0
     FAMILY_ID: Final = 1
     FAMILY_NAME: Final = 2
@@ -18,4 +18,3 @@ class CtrlAttr(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"CTRL_ATTR_{self.name}"
-

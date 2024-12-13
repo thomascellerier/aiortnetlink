@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["RTAType"]
 
 
-class RTAType(IntEnum):        
+class RTAType(IntEnum):
     UNSPEC: Final = 0
     DST: Final = 1
     SRC: Final = 2
@@ -41,4 +41,3 @@ class RTAType(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"RTA_{self.name}"
-

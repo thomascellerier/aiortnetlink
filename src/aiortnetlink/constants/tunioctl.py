@@ -5,32 +5,31 @@ from typing import Final
 __all__ = ["TunIoctl"]
 
 
-class TunIoctl(IntEnum):        
-    SETNOCSUM: Final = 0x400454c8
-    SETDEBUG: Final = 0x400454c9
-    SETIFF: Final = 0x400454ca
-    SETPERSIST: Final = 0x400454cb
-    SETOWNER: Final = 0x400454cc
-    SETLINK: Final = 0x400454cd
-    SETGROUP: Final = 0x400454ce
-    GETFEATURES: Final = 0x800454cf
-    SETOFFLOAD: Final = 0x400454d0
-    SETTXFILTER: Final = 0x400454d1
-    GETIFF: Final = 0x800454d2
-    GETSNDBUF: Final = 0x800454d3
-    SETSNDBUF: Final = 0x400454d4
-    ATTACHFILTER: Final = 0x401054d5
-    DETACHFILTER: Final = 0x401054d6
-    GETVNETHDRSZ: Final = 0x800454d7
-    SETVNETHDRSZ: Final = 0x400454d8
-    SETVNETBE: Final = 0x400454de
-    GETVNETBE: Final = 0x800454df
-    SETSTEERINGEBPF: Final = 0x800454e0
-    SETFILTEREBPF: Final = 0x800454e1
-    SETCARRIER: Final = 0x400454e2
-    GETDEVNETNS: Final = 0x54e3
+class TunIoctl(IntEnum):
+    SETNOCSUM: Final = 0x400454C8
+    SETDEBUG: Final = 0x400454C9
+    SETIFF: Final = 0x400454CA
+    SETPERSIST: Final = 0x400454CB
+    SETOWNER: Final = 0x400454CC
+    SETLINK: Final = 0x400454CD
+    SETGROUP: Final = 0x400454CE
+    GETFEATURES: Final = 0x800454CF
+    SETOFFLOAD: Final = 0x400454D0
+    SETTXFILTER: Final = 0x400454D1
+    GETIFF: Final = 0x800454D2
+    GETSNDBUF: Final = 0x800454D3
+    SETSNDBUF: Final = 0x400454D4
+    ATTACHFILTER: Final = 0x401054D5
+    DETACHFILTER: Final = 0x401054D6
+    GETVNETHDRSZ: Final = 0x800454D7
+    SETVNETHDRSZ: Final = 0x400454D8
+    SETVNETBE: Final = 0x400454DE
+    GETVNETBE: Final = 0x800454DF
+    SETSTEERINGEBPF: Final = 0x800454E0
+    SETFILTEREBPF: Final = 0x800454E1
+    SETCARRIER: Final = 0x400454E2
+    GETDEVNETNS: Final = 0x54E3
 
     @property
     def constant_name(self) -> str:
         return f"TUN{self.name}"
-

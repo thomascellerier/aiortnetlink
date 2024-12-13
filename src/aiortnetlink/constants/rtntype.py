@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["RTNType"]
 
 
-class RTNType(IntEnum):        
+class RTNType(IntEnum):
     UNSPEC: Final = 0
     UNICAST: Final = 1
     LOCAL: Final = 2
@@ -22,4 +22,3 @@ class RTNType(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"RTN_{self.name}"
-

@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["IFAType"]
 
 
-class IFAType(IntEnum):        
+class IFAType(IntEnum):
     UNSPEC: Final = 0
     ADDRESS: Final = 1
     LOCAL: Final = 2
@@ -22,4 +22,3 @@ class IFAType(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"IFA_{self.name}"
-

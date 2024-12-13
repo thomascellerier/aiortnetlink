@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["CtrlCmd"]
 
 
-class CtrlCmd(IntEnum):        
+class CtrlCmd(IntEnum):
     UNSPEC: Final = 0
     NEWFAMILY: Final = 1
     DELFAMILY: Final = 2
@@ -20,4 +20,3 @@ class CtrlCmd(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"CTRL_CMD_{self.name}"
-

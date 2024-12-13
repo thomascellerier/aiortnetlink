@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["ICMPv6RouterPref"]
 
 
-class ICMPv6RouterPref(IntEnum):        
+class ICMPv6RouterPref(IntEnum):
     LOW: Final = 0x3
     MEDIUM: Final = 0x0
     HIGH: Final = 1 << 0
@@ -14,4 +14,3 @@ class ICMPv6RouterPref(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"ICMPV6_ROUTER_PREF_{self.name}"
-

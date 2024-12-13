@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["NLMsgType"]
 
 
-class NLMsgType(IntEnum):        
+class NLMsgType(IntEnum):
     NOOP: Final = 1
     ERROR: Final = 2
     DONE: Final = 3
@@ -15,4 +15,3 @@ class NLMsgType(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"NLMSG_{self.name}"
-

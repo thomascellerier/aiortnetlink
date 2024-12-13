@@ -473,6 +473,14 @@ def run_binary(binary: Path) -> dict[str, dict[str, int]]:
     return values
 
 
+def _hex(value: int) -> str:
+    """
+    Format hex the same way that ruff format would.
+    """
+    value_str = hex(value)
+    return f"0x{value_str[2:].upper()}"
+
+
 def print_result(
     constant_values: dict[str, dict[str, int]],
     filter_fn: Callable[[TypeSpec], bool],
@@ -498,8 +506,7 @@ def print_result(
             __all__ = ["{name}"]
     
 
-            class {name}(IntEnum):\
-        """),
+            class {name}(IntEnum):"""),
             file=f,
         )
         for constant_name, constant_value in values.items():
@@ -510,9 +517,9 @@ def print_result(
                     value_str = f"1 << {bit_shift}"
                 else:
                     # Not a bit shift, could be a combination of other flags.
-                    value_str = hex(constant_value)
+                    value_str = _hex(constant_value)
             elif type_spec.hex:
-                value_str = hex(constant_value)
+                value_str = _hex(constant_value)
             else:
                 value_str = str(constant_value)
             print(
@@ -532,6 +539,7 @@ def print_result(
                 prefix=" " * 4,
             ),
             file=f,
+            end="",
         )
 
         file_name = f"{type_spec.name.lower()}.py"

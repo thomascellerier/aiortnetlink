@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["IFFlag"]
 
 
-class IFFlag(IntEnum):        
+class IFFlag(IntEnum):
     UP: Final = 1 << 0
     BROADCAST: Final = 1 << 1
     DEBUG: Final = 1 << 2
@@ -29,4 +29,3 @@ class IFFlag(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"IFF_{self.name}"
-

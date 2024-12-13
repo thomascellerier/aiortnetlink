@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["NLFamily"]
 
 
-class NLFamily(IntEnum):        
+class NLFamily(IntEnum):
     ROUTE: Final = 0
     USERSOCK: Final = 2
     FIREWALL: Final = 3
@@ -28,4 +28,3 @@ class NLFamily(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"NETLINK_{self.name}"
-

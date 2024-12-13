@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["IFAFlag"]
 
 
-class IFAFlag(IntEnum):        
+class IFAFlag(IntEnum):
     SECONDARY: Final = 1 << 0
     NODAD: Final = 1 << 1
     OPTIMISTIC: Final = 1 << 2
@@ -22,4 +22,3 @@ class IFAFlag(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"IFA_F_{self.name}"
-

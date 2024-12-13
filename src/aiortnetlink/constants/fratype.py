@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["FRAType"]
 
 
-class FRAType(IntEnum):        
+class FRAType(IntEnum):
     UNSPEC: Final = 0
     DST: Final = 1
     SRC: Final = 2
@@ -35,4 +35,3 @@ class FRAType(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"FRA_{self.name}"
-

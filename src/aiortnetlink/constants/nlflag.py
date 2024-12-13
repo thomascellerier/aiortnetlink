@@ -5,7 +5,7 @@ from typing import Final
 __all__ = ["NLFlag"]
 
 
-class NLFlag(IntEnum):        
+class NLFlag(IntEnum):
     REQUEST: Final = 1 << 0
     MULTI: Final = 1 << 1
     ACK: Final = 1 << 2
@@ -24,4 +24,3 @@ class NLFlag(IntEnum):
     @property
     def constant_name(self) -> str:
         return f"NLM_F_{self.name}"
-
