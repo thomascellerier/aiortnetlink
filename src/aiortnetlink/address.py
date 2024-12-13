@@ -13,6 +13,7 @@ from typing import Callable, Literal, NamedTuple
 from aiortnetlink.constants.ifaflag import IFAFlag
 from aiortnetlink.constants.ifatype import IFAType
 from aiortnetlink.constants.nlflag import NLFlag
+from aiortnetlink.constants.rtmtype import RTMType
 from aiortnetlink.netlink import (
     NetlinkRequest,
     NetlinkValueError,
@@ -20,7 +21,6 @@ from aiortnetlink.netlink import (
     NLMsg,
     encode_nlattr_str,
 )
-from aiortnetlink.rtm import RTMType
 
 __all__ = ["IFAddr"]
 

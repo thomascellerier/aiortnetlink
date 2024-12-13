@@ -134,6 +134,73 @@ int main(int argc, char *argv[]) {
     printf("RTNLFamily RTNL_FAMILY_IPMR %d\n", RTNL_FAMILY_IPMR);
     printf("RTNLFamily RTNL_FAMILY_IP6MR %d\n", RTNL_FAMILY_IP6MR);
 
+    // RTMType
+    printf("RTMType RTM_NEWLINK %d\n", RTM_NEWLINK);
+    printf("RTMType RTM_DELLINK %d\n", RTM_DELLINK);
+    printf("RTMType RTM_GETLINK %d\n", RTM_GETLINK);
+    printf("RTMType RTM_SETLINK %d\n", RTM_SETLINK);
+    printf("RTMType RTM_NEWADDR %d\n", RTM_NEWADDR);
+    printf("RTMType RTM_DELADDR %d\n", RTM_DELADDR);
+    printf("RTMType RTM_GETADDR %d\n", RTM_GETADDR);
+    printf("RTMType RTM_NEWROUTE %d\n", RTM_NEWROUTE);
+    printf("RTMType RTM_DELROUTE %d\n", RTM_DELROUTE);
+    printf("RTMType RTM_GETROUTE %d\n", RTM_GETROUTE);
+    printf("RTMType RTM_NEWNEIGH %d\n", RTM_NEWNEIGH);
+    printf("RTMType RTM_DELNEIGH %d\n", RTM_DELNEIGH);
+    printf("RTMType RTM_GETNEIGH %d\n", RTM_GETNEIGH);
+    printf("RTMType RTM_NEWRULE %d\n", RTM_NEWRULE);
+    printf("RTMType RTM_DELRULE %d\n", RTM_DELRULE);
+    printf("RTMType RTM_GETRULE %d\n", RTM_GETRULE);
+    printf("RTMType RTM_NEWQDISC %d\n", RTM_NEWQDISC);
+    printf("RTMType RTM_DELQDISC %d\n", RTM_DELQDISC);
+    printf("RTMType RTM_GETQDISC %d\n", RTM_GETQDISC);
+    printf("RTMType RTM_NEWTCLASS %d\n", RTM_NEWTCLASS);
+    printf("RTMType RTM_DELTCLASS %d\n", RTM_DELTCLASS);
+    printf("RTMType RTM_GETTCLASS %d\n", RTM_GETTCLASS);
+    printf("RTMType RTM_NEWTFILTER %d\n", RTM_NEWTFILTER);
+    printf("RTMType RTM_DELTFILTER %d\n", RTM_DELTFILTER);
+    printf("RTMType RTM_GETTFILTER %d\n", RTM_GETTFILTER);
+    printf("RTMType RTM_NEWACTION %d\n", RTM_NEWACTION);
+    printf("RTMType RTM_DELACTION %d\n", RTM_DELACTION);
+    printf("RTMType RTM_GETACTION %d\n", RTM_GETACTION);
+    printf("RTMType RTM_NEWPREFIX %d\n", RTM_NEWPREFIX);
+    printf("RTMType RTM_GETMULTICAST %d\n", RTM_GETMULTICAST);
+    printf("RTMType RTM_GETANYCAST %d\n", RTM_GETANYCAST);
+    printf("RTMType RTM_NEWNEIGHTBL %d\n", RTM_NEWNEIGHTBL);
+    printf("RTMType RTM_GETNEIGHTBL %d\n", RTM_GETNEIGHTBL);
+    printf("RTMType RTM_SETNEIGHTBL %d\n", RTM_SETNEIGHTBL);
+    printf("RTMType RTM_NEWNDUSEROPT %d\n", RTM_NEWNDUSEROPT);
+    printf("RTMType RTM_NEWADDRLABEL %d\n", RTM_NEWADDRLABEL);
+    printf("RTMType RTM_DELADDRLABEL %d\n", RTM_DELADDRLABEL);
+    printf("RTMType RTM_GETADDRLABEL %d\n", RTM_GETADDRLABEL);
+    printf("RTMType RTM_GETDCB %d\n", RTM_GETDCB);
+    printf("RTMType RTM_SETDCB %d\n", RTM_SETDCB);
+
+    // RTNLGroup
+    printf("RTNLGroup RTNLGRP_NONE %d\n", RTNLGRP_NONE);
+    printf("RTNLGroup RTNLGRP_LINK %d\n", RTNLGRP_LINK);
+    printf("RTNLGroup RTNLGRP_NOTIFY %d\n", RTNLGRP_NOTIFY);
+    printf("RTNLGroup RTNLGRP_NEIGH %d\n", RTNLGRP_NEIGH);
+    printf("RTNLGroup RTNLGRP_TC %d\n", RTNLGRP_TC);
+    printf("RTNLGroup RTNLGRP_IPV4_IFADDR %d\n", RTNLGRP_IPV4_IFADDR);
+    printf("RTNLGroup RTNLGRP_IPV4_MROUTE %d\n", RTNLGRP_IPV4_MROUTE);
+    printf("RTNLGroup RTNLGRP_IPV4_ROUTE %d\n", RTNLGRP_IPV4_ROUTE);
+    printf("RTNLGroup RTNLGRP_IPV4_RULE %d\n", RTNLGRP_IPV4_RULE);
+    printf("RTNLGroup RTNLGRP_IPV6_IFADDR %d\n", RTNLGRP_IPV6_IFADDR);
+    printf("RTNLGroup RTNLGRP_IPV6_MROUTE %d\n", RTNLGRP_IPV6_MROUTE);
+    printf("RTNLGroup RTNLGRP_IPV6_ROUTE %d\n", RTNLGRP_IPV6_ROUTE);
+    printf("RTNLGroup RTNLGRP_IPV6_IFINFO %d\n", RTNLGRP_IPV6_IFINFO);
+    printf("RTNLGroup RTNLGRP_DECnet_IFADDR %d\n", RTNLGRP_DECnet_IFADDR);
+    printf("RTNLGroup RTNLGRP_NOP2 %d\n", RTNLGRP_NOP2);
+    printf("RTNLGroup RTNLGRP_DECnet_ROUTE %d\n", RTNLGRP_DECnet_ROUTE);
+    printf("RTNLGroup RTNLGRP_DECnet_RULE %d\n", RTNLGRP_DECnet_RULE);
+    printf("RTNLGroup RTNLGRP_NOP4 %d\n", RTNLGRP_NOP4);
+    printf("RTNLGroup RTNLGRP_IPV6_PREFIX %d\n", RTNLGRP_IPV6_PREFIX);
+    printf("RTNLGroup RTNLGRP_IPV6_RULE %d\n", RTNLGRP_IPV6_RULE);
+    printf("RTNLGroup RTNLGRP_ND_USEROPT %d\n", RTNLGRP_ND_USEROPT);
+    printf("RTNLGroup RTNLGRP_PHONET_IFADDR %d\n", RTNLGRP_PHONET_IFADDR);
+    printf("RTNLGroup RTNLGRP_PHONET_ROUTE %d\n", RTNLGRP_PHONET_ROUTE);
+
     // RTNType
     printf("RTNType RTN_UNSPEC %d\n", RTN_UNSPEC);
     printf("RTNType RTN_UNICAST %d\n", RTN_UNICAST);

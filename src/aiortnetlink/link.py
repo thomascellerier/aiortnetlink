@@ -7,12 +7,12 @@ from aiortnetlink.constants.arphrdtype import ARPHRDType
 from aiortnetlink.constants.ifflag import IFFlag
 from aiortnetlink.constants.iflatype import IFLAType
 from aiortnetlink.constants.nlflag import NLFlag
+from aiortnetlink.constants.rtmtype import RTMType
 from aiortnetlink.netlink import (
     NetlinkRequest,
     NLMsg,
     encode_nlattr_str,
 )
-from aiortnetlink.rtm import RTMType
 
 __all__ = ["IFLink", "ifinfomsg"]
 

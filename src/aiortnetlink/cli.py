@@ -320,45 +320,45 @@ async def run(args: argparse.Namespace) -> None:
                     )
 
         case argparse.Namespace(object="watch" | "w"):
-            from aiortnetlink import rtm
+            from aiortnetlink.constants.rtnlgroup import RTNLGroup
 
             groups: set[int] = set()
 
             def link_groups() -> tuple[int, ...]:
-                return (rtm.RTNLGroup.LINK,)
+                return (RTNLGroup.LINK,)
 
             if args.link:
                 link_groups()
 
             def address_groups() -> tuple[int, ...]:
                 if args.ipv4:
-                    return (rtm.RTNLGroup.IPV4_IFADDR,)
+                    return (RTNLGroup.IPV4_IFADDR,)
                 elif args.ipv6:
-                    return (rtm.RTNLGroup.IPV6_IFADDR,)
+                    return (RTNLGroup.IPV6_IFADDR,)
                 else:
-                    return rtm.RTNLGroup.IPV4_IFADDR, rtm.RTNLGroup.IPV6_IFADDR
+                    return RTNLGroup.IPV4_IFADDR, RTNLGroup.IPV6_IFADDR
 
             if args.address:
                 groups.update(address_groups())
 
             def route_groups() -> tuple[int, ...]:
                 if args.ipv4:
-                    return (rtm.RTNLGroup.IPV4_ROUTE,)
+                    return (RTNLGroup.IPV4_ROUTE,)
                 elif args.ipv6:
-                    return (rtm.RTNLGroup.IPV6_ROUTE,)
+                    return (RTNLGroup.IPV6_ROUTE,)
                 else:
-                    return rtm.RTNLGroup.IPV4_ROUTE, rtm.RTNLGroup.IPV6_ROUTE
+                    return RTNLGroup.IPV4_ROUTE, RTNLGroup.IPV6_ROUTE
 
             if args.route:
                 groups.update(route_groups())
 
             def rule_groups() -> tuple[int, ...]:
                 if args.ipv4:
-                    return (rtm.RTNLGroup.IPV4_RULE,)
+                    return (RTNLGroup.IPV4_RULE,)
                 elif args.ipv6:
-                    return (rtm.RTNLGroup.IPV6_RULE,)
+                    return (RTNLGroup.IPV6_RULE,)
                 else:
-                    return rtm.RTNLGroup.IPV4_RULE, rtm.RTNLGroup.IPV6_RULE
+                    return RTNLGroup.IPV4_RULE, RTNLGroup.IPV6_RULE
 
             # No groups specified, listen to everything supported!
             if not groups:

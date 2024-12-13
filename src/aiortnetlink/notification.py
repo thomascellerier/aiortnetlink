@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from aiortnetlink import rtm
+from aiortnetlink.constants.rtmtype import RTMType
+from aiortnetlink.constants.rtnlgroup import RTNLGroup
 from aiortnetlink.lazy import ifaddr_type, iflink_type, route_type, rule_type
 
 if TYPE_CHECKING:
@@ -96,29 +97,29 @@ def decode_notification(msg: NLMsg, group: int) -> NetlinkNotification:
     # This assumes that netlink notifications only every set one group bit.
     group_value = group.bit_length()
     match msg.msg_type:
-        case rtm.RTMType.NEWLINK:
-            assert group_value == rtm.RTNLGroup.LINK
+        case RTMType.NEWLINK:
+            assert group_value == RTNLGroup.LINK
             return NewLinkNotification(iflink_type().from_nlmsg(msg))
-        case rtm.RTMType.DELLINK:
-            assert group_value == rtm.RTNLGroup.LINK
+        case RTMType.DELLINK:
+            assert group_value == RTNLGroup.LINK
             return DelLinkNotification(iflink_type().from_nlmsg(msg))
-        case rtm.RTMType.NEWADDR:
-            assert group_value in (rtm.RTNLGroup.IPV4_IFADDR, rtm.RTNLGroup.IPV6_IFADDR)
+        case RTMType.NEWADDR:
+            assert group_value in (RTNLGroup.IPV4_IFADDR, RTNLGroup.IPV6_IFADDR)
             return NewAddrNotification(ifaddr_type().from_nlmsg(msg))
-        case rtm.RTMType.DELADDR:
-            assert group_value in (rtm.RTNLGroup.IPV4_IFADDR, rtm.RTNLGroup.IPV6_IFADDR)
+        case RTMType.DELADDR:
+            assert group_value in (RTNLGroup.IPV4_IFADDR, RTNLGroup.IPV6_IFADDR)
             return DelAddrNotification(ifaddr_type().from_nlmsg(msg))
-        case rtm.RTMType.NEWROUTE:
-            assert group_value in (rtm.RTNLGroup.IPV4_ROUTE, rtm.RTNLGroup.IPV6_ROUTE)
+        case RTMType.NEWROUTE:
+            assert group_value in (RTNLGroup.IPV4_ROUTE, RTNLGroup.IPV6_ROUTE)
             return NewRouteNotification(route_type().from_nlmsg(msg))
-        case rtm.RTMType.DELROUTE:
-            assert group_value in (rtm.RTNLGroup.IPV4_ROUTE, rtm.RTNLGroup.IPV6_ROUTE)
+        case RTMType.DELROUTE:
+            assert group_value in (RTNLGroup.IPV4_ROUTE, RTNLGroup.IPV6_ROUTE)
             return DelRouteNotification(route_type().from_nlmsg(msg))
-        case rtm.RTMType.NEWRULE:
-            assert group_value in (rtm.RTNLGroup.IPV4_RULE, rtm.RTNLGroup.IPV6_RULE)
+        case RTMType.NEWRULE:
+            assert group_value in (RTNLGroup.IPV4_RULE, RTNLGroup.IPV6_RULE)
             return NewRuleNotification(rule_type().from_nlmsg(msg))
-        case rtm.RTMType.DELRULE:
-            assert group_value in (rtm.RTNLGroup.IPV4_RULE, rtm.RTNLGroup.IPV6_RULE)
+        case RTMType.DELRULE:
+            assert group_value in (RTNLGroup.IPV4_RULE, RTNLGroup.IPV6_RULE)
             return DelRuleNotification(rule_type().from_nlmsg(msg))
         case _:
             return UnhandledNetlinkNotification(msg, group)

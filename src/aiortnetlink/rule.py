@@ -6,9 +6,9 @@ from typing import Callable, Literal
 
 from aiortnetlink.constants.fratype import FRAType
 from aiortnetlink.constants.nlflag import NLFlag
+from aiortnetlink.constants.rtmtype import RTMType
 from aiortnetlink.netlink import NetlinkRequest, NLMsg
 from aiortnetlink.route import RTMsg, RTNType
-from aiortnetlink.rtm import RTMType
 
 __all__ = ["Rule"]
 

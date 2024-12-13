@@ -8,9 +8,9 @@ from typing import Callable, Literal, NamedTuple
 from aiortnetlink.constants.icmpv6routerpref import ICMPv6RouterPref
 from aiortnetlink.constants.nlflag import NLFlag
 from aiortnetlink.constants.rtatype import RTAType
+from aiortnetlink.constants.rtmtype import RTMType
 from aiortnetlink.constants.rtntype import RTNType
 from aiortnetlink.netlink import NetlinkRequest, NLMsg
-from aiortnetlink.rtm import RTMType
 
 __all__ = [
     "RTNType",
