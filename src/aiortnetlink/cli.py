@@ -12,6 +12,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rcvbuf-size", type=int, help="Set netlink socket receive buffer size"
     )
+    parser.add_argument(
+        "-n",
+        "--netns",
+        help="Set network namespace",
+        default=None,
+    )
     subparsers = parser.add_subparsers(title="object", dest="object", required=True)
 
     # link
@@ -145,11 +151,15 @@ def _parse_dev(dev: str | None) -> tuple[int, str | None]:
 
 
 async def run(args: argparse.Namespace) -> None:
+    client_args = dict(
+        rcvbuf_size=args.rcvbuf_size,
+        netns_name=args.netns,
+    )
     match args:
         case argparse.Namespace(object="link" | "l", command="show" | "s", DEV=dev):
             ifi_index, ifi_name = _parse_dev(dev)
 
-            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(**client_args) as nl:
                 if ifi_index != 0:
                     link = await nl.get_link(ifi_index=ifi_index)
                     if link:
@@ -181,7 +191,7 @@ async def run(args: argparse.Namespace) -> None:
             from collections import defaultdict
 
             addrs_by_if_index = defaultdict(list)
-            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(**client_args) as nl:
                 async for addr in nl.get_addrs():
                     addrs_by_if_index[addr.if_index].append(addr)
 
@@ -218,7 +228,7 @@ async def run(args: argparse.Namespace) -> None:
             address = ipaddress.ip_interface(addr)
             ifi_index, ifi_name = _parse_dev(dev)
 
-            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(**client_args) as nl:
                 if ifi_name is not None:
                     link = await nl.get_link(ifi_name=ifi_name)
                     if link is None:
@@ -234,7 +244,7 @@ async def run(args: argparse.Namespace) -> None:
             address = ipaddress.ip_interface(addr)
             ifi_index, ifi_name = _parse_dev(dev)
 
-            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(**client_args) as nl:
                 if ifi_name is not None:
                     link = await nl.get_link(ifi_name=ifi_name)
                     if link is None:
@@ -267,7 +277,7 @@ async def run(args: argparse.Namespace) -> None:
             else:
                 ip_versions = (4, 6)
 
-            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(**client_args) as nl:
                 if args.numeric:
                     link_index_to_name = {
                         link.index: link.name async for link in nl.get_links()
@@ -305,7 +315,7 @@ async def run(args: argparse.Namespace) -> None:
             else:
                 ip_versions = (4, 6)
 
-            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(**client_args) as nl:
                 async for rule in nl.get_rules():
                     if rule.family > 127:
                         # Values up to 127 are reserved for real address
@@ -373,7 +383,7 @@ async def run(args: argparse.Namespace) -> None:
                     for group in type_groups
                 )
 
-            async with NetlinkClient(groups=groups, rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(groups=groups, **client_args) as nl:
                 while notification := await nl.recv_notification():
                     print(f"{notification=}")
 
@@ -412,7 +422,7 @@ async def run(args: argparse.Namespace) -> None:
             delete_tuntap(args.NAME, args.MODE)
 
         case argparse.Namespace(object="gen"):
-            async with NetlinkClient(rcvbuf_size=args.rcvbuf_size) as nl:
+            async with NetlinkClient(**client_args) as nl:
                 await nl.get_family("nlctrl")
 
         case _:

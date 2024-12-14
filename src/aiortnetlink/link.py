@@ -53,7 +53,7 @@ class IFLink:
     mtu: int | None
     qdisc: str | None
     operstate: IFOper | None = None
-    linkmode: IFLinkMode = IFLinkMode.DEFAULT
+    linkmode: IFLinkMode | None = None
     group: int | None = None
     txqlen: int | None = None
     broadcast: str | None = None
@@ -97,7 +97,6 @@ class IFLink:
                     broadcast = nlattr.as_macaddress()
 
         assert name is not None
-        assert linkmode is not None
 
         return IFLink(
             family=ifi_family,
@@ -165,7 +164,10 @@ class IFLink:
             parts.extend(["state", "UNKNOWN"])
 
         if show_mode:
-            parts.extend(["mode", IFLinkMode(self.linkmode).name])
+            if self.linkmode is not None:
+                parts.extend(["mode", IFLinkMode(self.linkmode).name])
+            else:
+                parts.extend(["mode", "UNKNOWN"])
 
         if self.group is not None:
             parts.extend(["group", group_id_to_name(self.group) or str(self.group)])

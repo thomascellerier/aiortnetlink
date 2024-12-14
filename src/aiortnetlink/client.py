@@ -47,13 +47,18 @@ __all__ = ["NetlinkClient"]
 
 class NetlinkClient:
     def __init__(
-        self, pid: int = 0, groups: Iterable[int] = (), rcvbuf_size: int | None = None
+        self,
+        pid: int = 0,
+        groups: Iterable[int] = (),
+        rcvbuf_size: int | None = None,
+        netns_name: str | None = None,
     ) -> None:
         self._transport: asyncio.DatagramTransport | None = None
         self._protocol: NetlinkProtocol | None = None
         self._seqno = 0
         self._recvbuf_size: int | None = rcvbuf_size
         self._pid = pid
+        self._netns_name = netns_name
 
         # Calculate group mask used for netlink notifications, 0 means do not listen for notifications.
         group_mask = 0
@@ -69,6 +74,7 @@ class NetlinkClient:
             pid=self._pid,
             groups=self._groups,
             rcvbuf_size=self._recvbuf_size,
+            netns_name=self._netns_name,
         )
         self._transport = transport
         self._protocol = protocol

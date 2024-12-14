@@ -377,8 +377,19 @@ async def create_netlink_endpoint(
     pid: int = 0,
     groups: int = 0,
     rcvbuf_size: int | None = None,
+    netns_name: str | None = None,
 ) -> tuple[DatagramTransport, NetlinkProtocol]:
-    sock = _netlink_socket(pid, groups, rcvbuf_size)
+    if netns_name is not None:
+        # Requires CAP_SYS_ADMIN
+        def _run_in_netns() -> socket.socket:
+            from aiortnetlink.netns import named_netns_context
+
+            with named_netns_context(netns_name):
+                return _netlink_socket(pid, groups, rcvbuf_size)
+
+        sock = await asyncio.to_thread(_run_in_netns)
+    else:
+        sock = _netlink_socket(pid, groups, rcvbuf_size)
     return await asyncio.get_running_loop().create_datagram_endpoint(
         lambda: NetlinkProtocol(pid, groups), sock=sock
     )
