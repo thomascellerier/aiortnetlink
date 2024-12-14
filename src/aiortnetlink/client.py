@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import collections
 import os
-from ipaddress import IPv4Interface, IPv6Interface
 from typing import TYPE_CHECKING, Iterable
 
 from aiortnetlink.constants.nlflag import NLFlag
@@ -29,8 +28,9 @@ from aiortnetlink.netlink import (
 )
 
 if TYPE_CHECKING:
+    from ipaddress import IPv4Address, IPv4Interface, IPv6Address, IPv6Interface
     from types import TracebackType
-    from typing import TYPE_CHECKING, AsyncIterator, Self
+    from typing import AsyncIterator, Self
 
     # NOTE: These modules should only be imported at type checking time!
     # We want the actual import to happen lazily to keep the module fast when
@@ -239,11 +239,20 @@ class NetlinkClient:
         async for _ in self._send_request(request):
             pass
 
-    async def get_routes(self) -> AsyncIterator[Route]:
+    async def get_routes(
+        self, address: IPv4Address | IPv6Address | None = None
+    ) -> AsyncIterator[Route]:
         route_type_ = route_type()
-        request = route_type_.rtm_get()
+        request = route_type_.rtm_get(address=address)
         async for msg in self._send_request(request):
             yield route_type_.from_nlmsg(msg)
+
+    async def get_route(self, address: IPv4Address | IPv6Address) -> Route:
+        found_route: Route | None = None
+        async for route in self.get_routes(address=address):
+            found_route = route
+        assert found_route is not None
+        return found_route
 
     async def get_rules(self) -> AsyncIterator[Rule]:
         rule_type_ = rule_type()

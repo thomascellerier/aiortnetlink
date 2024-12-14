@@ -148,6 +148,30 @@ route_types = [
     "RTN_XRESOLVE",
 ]
 
+rtm_flags = [
+    "RTM_F_NOTIFY",
+    "RTM_F_CLONED",
+    "RTM_F_EQUALIZE",
+]
+
+rtc_flags = [
+    "RTCF_DEAD",
+    "RTCF_ONLINK",
+    "RTCF_NOTIFY",
+    "RTCF_DIRECTDST",
+    "RTCF_REDIRECTED",
+    "RTCF_TPROXY",
+    "RTCF_FAST",
+    "RTCF_MASQ",
+    "RTCF_SNAT",
+    "RTCF_DOREDIRECT",
+    "RTCF_DIRECTSRC",
+    "RTCF_DNAT",
+    "RTCF_BROADCAST",
+    "RTCF_MULTICAST",
+    "RTCF_REJECT",
+    "RTCF_LOCAL",
+]
 
 rta_types = [
     "RTA_UNSPEC",
@@ -454,6 +478,17 @@ constants = [
     TypeSpec("RTMType", "RTM_", rtm_types, includes=["<linux/rtnetlink.h>"]),
     TypeSpec("RTNLGroup", "RTNLGRP_", rtnl_groups, includes=["<linux/rtnetlink.h>"]),
     TypeSpec("RTNType", "RTN_", route_types, includes=["<linux/rtnetlink.h>"]),
+    TypeSpec(
+        "RTMFlag", "RTM_F_", rtm_flags, flag=True, includes=["<linux/rtnetlink.h>"]
+    ),
+    TypeSpec(
+        "RTCFlag",
+        "RTCF_",
+        rtc_flags,
+        flag=True,
+        printf_specifier=lambda _: "%u",
+        includes=["<linux/in_route.h>"],
+    ),
     TypeSpec("RTAType", "RTA_", rta_types, includes=["<linux/rtnetlink.h>"]),
     TypeSpec("ARPHRDType", "ARPHRD_", arphrd_types, includes=["<linux/if_arp.h>"]),
     TypeSpec("IFLAType", "IFLA_", ifla_types, includes=["<linux/if.h>"]),

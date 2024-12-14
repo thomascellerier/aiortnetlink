@@ -41,6 +41,7 @@ uv run aiortnetlink addr show
 
 ### Routes
 - `get_routes`: List all routes.
+- `get_route`: Get route for the given address.
 
 ### Rules
 - `get_rules`: List all rules.

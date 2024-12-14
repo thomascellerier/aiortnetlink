@@ -4,6 +4,7 @@
 #include <linux/if.h>
 #include <linux/if_arp.h>
 #include <linux/if_tun.h>
+#include <linux/in_route.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <stdio.h>
@@ -214,6 +215,29 @@ int main(int argc, char *argv[]) {
     printf("RTNType RTN_THROW %d\n", RTN_THROW);
     printf("RTNType RTN_NAT %d\n", RTN_NAT);
     printf("RTNType RTN_XRESOLVE %d\n", RTN_XRESOLVE);
+
+    // RTMFlag
+    printf("RTMFlag RTM_F_NOTIFY %d\n", RTM_F_NOTIFY);
+    printf("RTMFlag RTM_F_CLONED %d\n", RTM_F_CLONED);
+    printf("RTMFlag RTM_F_EQUALIZE %d\n", RTM_F_EQUALIZE);
+
+    // RTCFlag
+    printf("RTCFlag RTCF_DEAD %u\n", RTCF_DEAD);
+    printf("RTCFlag RTCF_ONLINK %u\n", RTCF_ONLINK);
+    printf("RTCFlag RTCF_NOTIFY %u\n", RTCF_NOTIFY);
+    printf("RTCFlag RTCF_DIRECTDST %u\n", RTCF_DIRECTDST);
+    printf("RTCFlag RTCF_REDIRECTED %u\n", RTCF_REDIRECTED);
+    printf("RTCFlag RTCF_TPROXY %u\n", RTCF_TPROXY);
+    printf("RTCFlag RTCF_FAST %u\n", RTCF_FAST);
+    printf("RTCFlag RTCF_MASQ %u\n", RTCF_MASQ);
+    printf("RTCFlag RTCF_SNAT %u\n", RTCF_SNAT);
+    printf("RTCFlag RTCF_DOREDIRECT %u\n", RTCF_DOREDIRECT);
+    printf("RTCFlag RTCF_DIRECTSRC %u\n", RTCF_DIRECTSRC);
+    printf("RTCFlag RTCF_DNAT %u\n", RTCF_DNAT);
+    printf("RTCFlag RTCF_BROADCAST %u\n", RTCF_BROADCAST);
+    printf("RTCFlag RTCF_MULTICAST %u\n", RTCF_MULTICAST);
+    printf("RTCFlag RTCF_REJECT %u\n", RTCF_REJECT);
+    printf("RTCFlag RTCF_LOCAL %u\n", RTCF_LOCAL);
 
     // RTAType
     printf("RTAType RTA_UNSPEC %d\n", RTA_UNSPEC);

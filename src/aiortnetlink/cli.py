@@ -1,5 +1,6 @@
 import argparse
 import sys
+from typing import Literal
 
 from aiortnetlink import NetlinkClient
 from aiortnetlink.netlink import NetlinkError
@@ -85,6 +86,16 @@ def parse_args() -> argparse.Namespace:
     route_show_ip_version_group.add_argument("-4", "--ipv4", action="store_true")
     route_show_ip_version_group.add_argument("-6", "--ipv6", action="store_true")
 
+    # route get
+    route_get_parser = route_subparsers.add_parser("get", aliases=["g"])
+    route_get_parser.add_argument("ADDRESS")
+    route_get_parser.add_argument(
+        "-n",
+        "--numeric",
+        help="don't map table id to table name",
+        action="store_true",
+    )
+
     # rule
     rule_parser = subparsers.add_parser("rule", aliases=["ru"])
     rule_subparsers = rule_parser.add_subparsers(
@@ -150,6 +161,51 @@ def _parse_dev(dev: str | None) -> tuple[int, str | None]:
     return ifi_index, ifi_name
 
 
+def _ip_versions(args: argparse.Namespace) -> tuple[Literal[4, 6], ...]:
+    if args.ipv4:
+        return (4,)
+    elif args.ipv6:
+        return (6,)
+    else:
+        return (4, 6)
+
+
+def _rt_tables(args: argparse.Namespace) -> dict[int, str]:
+    if args.numeric:
+        return {}
+
+    from aiortnetlink.rtfile import parse_rt_tables
+
+    return parse_rt_tables()
+
+
+def _rt_protos(args: argparse.Namespace) -> dict[int, str]:
+    if args.numeric:
+        return {}
+
+    from aiortnetlink.rtfile import parse_rt_protos
+
+    return parse_rt_protos()
+
+
+def _rt_scopes(args: argparse.Namespace) -> dict[int, str]:
+    if args.numeric:
+        return {}
+
+    from aiortnetlink.rtfile import parse_rt_scopes
+
+    return parse_rt_scopes()
+
+
+async def _link_index_to_name(
+    args: argparse.Namespace, nl: NetlinkClient
+) -> dict[int, str]:
+    if args.numeric:
+        return {}
+
+    return {link.index: link.name async for link in nl.get_links()}
+
+
 async def run(args: argparse.Namespace) -> None:
     client_args = dict(
         rcvbuf_size=args.rcvbuf_size,
@@ -197,19 +253,8 @@ async def run(args: argparse.Namespace) -> None:
 
                 link_by_if_index = {link.index: link async for link in nl.get_links()}
 
-            if not args.numeric:
-                from aiortnetlink.rtfile import parse_rt_scopes
-
-                scope_id_to_name = parse_rt_scopes()
-            else:
-                scope_id_to_name = {}
-
-            if args.ipv4:
-                ip_versions: tuple[int, ...] = (4,)
-            elif args.ipv6:
-                ip_versions = (6,)
-            else:
-                ip_versions = (4, 6)
+            scope_id_to_name = _rt_scopes(args)
+            ip_versions = _ip_versions(args)
 
             for if_index in sorted(link_by_if_index):
                 addrs = addrs_by_if_index[if_index]
@@ -255,35 +300,13 @@ async def run(args: argparse.Namespace) -> None:
         case argparse.Namespace(
             object="route" | "ro" | "r", command="show" | "s", table=table
         ):
-            if not args.numeric:
-                from aiortnetlink.rtfile import (
-                    parse_rt_protos,
-                    parse_rt_scopes,
-                    parse_rt_tables,
-                )
-
-                table_id_to_name = parse_rt_tables()
-                proto_id_to_name = parse_rt_protos()
-                scope_id_to_name = parse_rt_scopes()
-            else:
-                table_id_to_name = {}
-                proto_id_to_name = {}
-                scope_id_to_name = {}
-
-            if args.ipv4:
-                ip_versions = (4,)
-            elif args.ipv6:
-                ip_versions = (6,)
-            else:
-                ip_versions = (4, 6)
+            table_id_to_name = _rt_tables(args)
+            proto_id_to_name = _rt_protos(args)
+            scope_id_to_name = _rt_scopes(args)
+            ip_versions = _ip_versions(args)
 
             async with NetlinkClient(**client_args) as nl:
-                if args.numeric:
-                    link_index_to_name = {
-                        link.index: link.name async for link in nl.get_links()
-                    }
-                else:
-                    link_index_to_name = {}
+                link_index_to_name = await _link_index_to_name(args, nl)
 
                 async for route in nl.get_routes():
                     if table and table != route.table:
@@ -299,6 +322,26 @@ async def run(args: argparse.Namespace) -> None:
                             link_index_to_name=link_index_to_name.get,
                         )
                     )
+
+        case argparse.Namespace(object="route" | "ro" | "r", command="get" | "g"):
+            import ipaddress
+
+            proto_id_to_name = _rt_protos(args)
+            scope_id_to_name = _rt_scopes(args)
+
+            get_address = ipaddress.ip_address(args.ADDRESS)
+            async with NetlinkClient(**client_args) as nl:
+                link_index_to_name = await _link_index_to_name(args, nl)
+
+                route = await nl.get_route(get_address)
+                print(
+                    route.friendly_str(
+                        show_table=False,
+                        proto_id_to_name=proto_id_to_name.get,
+                        scope_id_to_name=scope_id_to_name.get,
+                        link_index_to_name=link_index_to_name.get,
+                    )
+                )
 
         case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
             if not args.numeric:

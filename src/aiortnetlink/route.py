@@ -8,9 +8,12 @@ from typing import Callable, Literal, NamedTuple
 from aiortnetlink.constants.icmpv6routerpref import ICMPv6RouterPref
 from aiortnetlink.constants.nlflag import NLFlag
 from aiortnetlink.constants.rtatype import RTAType
+from aiortnetlink.constants.rtcflag import RTCFlag
+from aiortnetlink.constants.rtmflag import RTMFlag
 from aiortnetlink.constants.rtmtype import RTMType
 from aiortnetlink.constants.rtntype import RTNType
-from aiortnetlink.netlink import NetlinkRequest, NLMsg
+from aiortnetlink.netlink import NetlinkRequest, NLAttr, NLMsg
+from aiortnetlink.structs.ifa_cacheinfo import IFACacheInfo
 
 __all__ = [
     "RTNType",
@@ -52,9 +55,22 @@ class RTMsg(NamedTuple):
         return _RTMsgStruct.pack(*self)
 
 
-def get_route_request() -> NetlinkRequest:
-    parts = [RTMsg().encode()]
-    flags = NLFlag.REQUEST | NLFlag.DUMP
+def get_route_request(
+    address: IPv4Address | IPv6Address | None = None,
+) -> NetlinkRequest:
+    flags: int = NLFlag.REQUEST
+    if address is not None:
+        family: int = socket.AF_INET if address.version == 4 else socket.AF_INET6
+        dst_len: int = address.max_prefixlen
+    else:
+        family = 0
+        dst_len = 0
+        flags |= NLFlag.DUMP
+
+    parts = [RTMsg(family=family, dst_len=dst_len).encode()]
+    if address is not None:
+        parts.append(NLAttr.from_ipaddress(RTAType.DST, address))
+
     data = b"".join(parts)
     return NetlinkRequest(RTMType.GETROUTE, flags, data, RTMType.NEWROUTE)
 
@@ -79,6 +95,8 @@ class Route:
     oif: int | None = None
     pref: int | None = None
     mark: int | None = None
+    uid: int | None = None
+    cache_info: IFACacheInfo | None = None
 
     @property
     def ip_version(self) -> Literal[4, 6]:
@@ -106,6 +124,8 @@ class Route:
         priority: int | None = None
         pref: int | None = None
         mark: int | None = None
+        uid: int | None = None
+        cache_info: IFACacheInfo | None = None
 
         for nlattr in msg.attrs(rtm_size):
             match nlattr.attr_type:
@@ -129,9 +149,12 @@ class Route:
                     src = nlattr.as_ipaddress()
                 case RTAType.MARK:
                     mark = nlattr.as_int()
+                case RTAType.UID:
+                    uid = nlattr.as_int()
+                case RTAType.CACHEINFO:
+                    cache_info = IFACacheInfo.decode(nlattr.data)
                 case _:
-                    # TODO: Handle remaining attributes, e.g. RTAType.UNSPEC and RTAType.CACHEINFO
-                    pass
+                    assert False, "unhandled"
 
         return Route(
             family=rtm.family,
@@ -152,11 +175,15 @@ class Route:
             pref=pref,
             prefsrc=prefsrc,
             mark=mark,
+            uid=uid,
+            cache_info=cache_info,
         )
 
     @classmethod
-    def rtm_get(cls) -> NetlinkRequest:
-        return get_route_request()
+    def rtm_get(
+        cls, address: IPv4Address | IPv6Address | None = None
+    ) -> NetlinkRequest:
+        return get_route_request(address)
 
     def friendly_str(
         self,
@@ -231,8 +258,23 @@ class Route:
                 ["mark", hex(self.mark) if self.mark >= 16 else str(self.mark)]
             )
 
+        if self.uid is not None:
+            parts.extend(["uid", str(self.uid)])
+
         if show_table:
             table = table_id_to_name(self.table) or str(self.table)
             parts.extend(["table", table])
 
-        return " ".join(parts)
+        route_str = " ".join(parts)
+
+        if self.family == socket.AF_INET and self.flags & RTMFlag.CLONED:
+            route_str += "\n    cache"
+            flags = self.flags & ~0xFFFF
+            if flags != 0:
+                flag_strs = []
+                for flag in RTCFlag:
+                    if bool(flags & flag):
+                        flag_strs.append(flag.name.lower())
+                route_str += f" <{','.join(flag_strs)}>"
+
+        return route_str
