@@ -154,7 +154,8 @@ class Route:
                 case RTAType.CACHEINFO:
                     cache_info = IFACacheInfo.decode(nlattr.data)
                 case _:
-                    assert False, "unhandled"
+                    # TODO: Handle remaining attributes
+                    pass
 
         return Route(
             family=rtm.family,
