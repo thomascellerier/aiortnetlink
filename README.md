@@ -52,6 +52,10 @@ uv run aiortnetlink addr show
 - `create_tuntap`: Create tun or tap device.
 - `delete_tuntap`: Delete tun or tap device.
 
+### Network namespaces
+
+All network operations can be performed in a network namesapce by passing the `netns_name` argument to the `NetlinkClient`.
+
 ## Development
 
 This project uses [uv](https://docs.astral.sh/uv/) for project management and [poe the poet](https://poethepoet.natn.io) to run development tasks.
