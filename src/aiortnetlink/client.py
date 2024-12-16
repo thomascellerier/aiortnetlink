@@ -267,6 +267,7 @@ class NetlinkClient:
         gateway: IPv4Address | IPv6Address | None = None,
         oif: int | None = None,
         family: int | None = None,
+        table: int | None = None,
     ) -> None:
         route_type_ = route_type()
         request = route_type_.rtm_add(
@@ -274,6 +275,7 @@ class NetlinkClient:
             gateway=gateway,
             oif=oif,
             family=family,
+            table=table,
         )
         async for _ in self._send_request(request):
             pass

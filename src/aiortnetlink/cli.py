@@ -102,6 +102,7 @@ def parse_args() -> argparse.Namespace:
     route_add_parser.add_argument("DESTINATION")
     route_add_parser.add_argument("-4", "--ipv4", action="store_true")
     route_add_parser.add_argument("-6", "--ipv6", action="store_true")
+    route_add_parser.add_argument("-t", "--table")
     route_add_destination_group = route_add_parser.add_mutually_exclusive_group(
         required=True
     )
@@ -360,9 +361,10 @@ async def run(args: argparse.Namespace) -> None:
 
             async with NetlinkClient(**client_args) as nl:
                 if args.dev:
-                    oif = (await nl.get_link(ifi_name=args.dev)).index
-                    if oif is None:
+                    found_link = await nl.get_link(ifi_name=args.dev)
+                    if found_link is None:
                         raise NetlinkError(f"No such device {args.dev}")
+                    oif = found_link.index
                 else:
                     oif = None
 
@@ -377,14 +379,35 @@ async def run(args: argparse.Namespace) -> None:
                 if "/" in destination:
                     destination = ipaddress.ip_network(destination)
                 else:
-                    address = ipaddress.ip_address(destination)
-                    destination = ipaddress.ip_network((address, address.max_prefixlen))
+                    dst_addr = ipaddress.ip_address(destination)
+                    destination = ipaddress.ip_network(
+                        (dst_addr, dst_addr.max_prefixlen)
+                    )
 
+                if table := args.table:
+                    try:
+                        table_id = int(table)
+                    except ValueError:
+                        from aiortnetlink.rtfile import parse_rt_tables
+
+                        try:
+                            table_id = next(
+                                tid
+                                for tid, name in parse_rt_tables().items()
+                                if name == table
+                            )
+                        except StopIteration:
+                            raise NetlinkError(
+                                f"No such routing table {table}"
+                            ) from None
+                else:
+                    table_id = None
                 await nl.add_route(
                     destination=destination,
                     gateway=ipaddress.ip_address(args.via) if args.via else None,
                     oif=oif,
                     family=family,
+                    table=table_id,
                 )
 
         case argparse.Namespace(object="rule" | "ru", command="show" | "s"):

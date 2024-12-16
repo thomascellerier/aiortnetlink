@@ -83,18 +83,21 @@ def add_route_request(
     gateway: IPv4Address | IPv6Address | None = None,
     oif: int | None = None,
     family: int | None = None,
-    table: int = 254,
+    table: int | None = None,
 ) -> NetlinkRequest:
     flags: int = NLFlag.REQUEST | NLFlag.CREATE | NLFlag.ACK
     if destination is not None:
         if family is None:
             family = socket.AF_INET if destination.version == 4 else socket.AF_INET6
-        dst_len = destination.max_prefixlen
+        dst_len: int = destination.max_prefixlen
     else:
         dst_len = 0
 
     if family is None:
         raise ValueError("Route must specify an address family")
+
+    if table is None:
+        table = RTTable.MAIN
 
     if table < 256:
         rtm_table = table
@@ -103,7 +106,7 @@ def add_route_request(
 
     parts = [
         RTMsg(
-            family=family.value,
+            family=family,
             rtm_type=RTNType.UNICAST,
             protocol=RTProt.BOOT,
             scope=RTScope.LINK,
@@ -243,12 +246,14 @@ class Route:
         gateway: IPv4Address | IPv6Address | None = None,
         oif: int | None = None,
         family: int | None = None,
-    ):
+        table: int | None = None,
+    ) -> NetlinkRequest:
         return add_route_request(
             destination=destination,
             gateway=gateway,
             oif=oif,
             family=family,
+            table=table,
         )
 
     def friendly_str(
