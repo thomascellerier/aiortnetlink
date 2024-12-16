@@ -161,7 +161,7 @@ class NetlinkClient:
             if seqno is not None and msg.seq != seqno:
                 raise NetlinkError(f"Invalid seqno, expected {seqno} but got {msg.seq}")
 
-            if bool(msg.flags & NLFlag.DUMP):
+            if bool(msg.flags & NLFlag.DUMP_INTR):
                 # Defer the interrupted error to yield as much data as possible.
                 # The application can then decide whether to use the partial dump or not.
                 interrupted = True

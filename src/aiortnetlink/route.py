@@ -85,7 +85,6 @@ def add_route_request(
     family: int | None = None,
     table: int = 254,
 ) -> NetlinkRequest:
-    print(f"{destination=} {gateway=} {oif=} {family=}")
     flags: int = NLFlag.REQUEST | NLFlag.CREATE | NLFlag.ACK
     if destination is not None:
         if family is None:
