@@ -272,6 +272,26 @@ int main(int argc, char *argv[]) {
     printf("RTAType RTA_DPORT %d\n", RTA_DPORT);
     printf("RTAType RTA_NH_ID %d\n", RTA_NH_ID);
 
+    // RTProt
+    printf("RTProt RTPROT_UNSPEC %d\n", RTPROT_UNSPEC);
+    printf("RTProt RTPROT_REDIRECT %d\n", RTPROT_REDIRECT);
+    printf("RTProt RTPROT_KERNEL %d\n", RTPROT_KERNEL);
+    printf("RTProt RTPROT_BOOT %d\n", RTPROT_BOOT);
+    printf("RTProt RTPROT_STATIC %d\n", RTPROT_STATIC);
+
+    // RTScope
+    printf("RTScope RT_SCOPE_UNIVERSE %d\n", RT_SCOPE_UNIVERSE);
+    printf("RTScope RT_SCOPE_SITE %d\n", RT_SCOPE_SITE);
+    printf("RTScope RT_SCOPE_LINK %d\n", RT_SCOPE_LINK);
+    printf("RTScope RT_SCOPE_HOST %d\n", RT_SCOPE_HOST);
+    printf("RTScope RT_SCOPE_NOWHERE %d\n", RT_SCOPE_NOWHERE);
+
+    // RTTable
+    printf("RTTable RT_TABLE_UNSPEC %d\n", RT_TABLE_UNSPEC);
+    printf("RTTable RT_TABLE_DEFAULT %d\n", RT_TABLE_DEFAULT);
+    printf("RTTable RT_TABLE_MAIN %d\n", RT_TABLE_MAIN);
+    printf("RTTable RT_TABLE_LOCAL %d\n", RT_TABLE_LOCAL);
+
     // ARPHRDType
     printf("ARPHRDType ARPHRD_ETHER %d\n", ARPHRD_ETHER);
     printf("ARPHRDType ARPHRD_NONE %d\n", ARPHRD_NONE);

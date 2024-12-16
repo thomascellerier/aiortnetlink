@@ -207,6 +207,29 @@ rta_types = [
     "RTA_NH_ID",
 ]
 
+rt_prots = [
+    "RTPROT_UNSPEC",
+    "RTPROT_REDIRECT",
+    "RTPROT_KERNEL",
+    "RTPROT_BOOT",
+    "RTPROT_STATIC",
+]
+
+rt_scopes = [
+    "RT_SCOPE_UNIVERSE",
+    "RT_SCOPE_SITE",
+    "RT_SCOPE_LINK",
+    "RT_SCOPE_HOST",
+    "RT_SCOPE_NOWHERE",
+]
+
+rt_tables = [
+    "RT_TABLE_UNSPEC",
+    "RT_TABLE_DEFAULT",
+    "RT_TABLE_MAIN",
+    "RT_TABLE_LOCAL",
+]
+
 arphrd_types = [
     "ARPHRD_ETHER",
     "ARPHRD_NONE",
@@ -490,6 +513,9 @@ constants = [
         includes=["<linux/in_route.h>"],
     ),
     TypeSpec("RTAType", "RTA_", rta_types, includes=["<linux/rtnetlink.h>"]),
+    TypeSpec("RTProt", "RTPROT_", rt_prots, includes=["<linux/rtnetlink.h>"]),
+    TypeSpec("RTScope", "RT_SCOPE_", rt_scopes, includes=["<linux/rtnetlink.h>"]),
+    TypeSpec("RTTable", "RT_TABLE_", rt_tables, includes=["<linux/rtnetlink.h>"]),
     TypeSpec("ARPHRDType", "ARPHRD_", arphrd_types, includes=["<linux/if_arp.h>"]),
     TypeSpec("IFLAType", "IFLA_", ifla_types, includes=["<linux/if.h>"]),
     TypeSpec("IFFlag", "IFF_", if_flags, flag=True, includes=["<linux/if.h>"]),

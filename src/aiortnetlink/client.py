@@ -28,7 +28,14 @@ from aiortnetlink.netlink import (
 )
 
 if TYPE_CHECKING:
-    from ipaddress import IPv4Address, IPv4Interface, IPv6Address, IPv6Interface
+    from ipaddress import (
+        IPv4Address,
+        IPv4Interface,
+        IPv4Network,
+        IPv6Address,
+        IPv6Interface,
+        IPv6Network,
+    )
     from types import TracebackType
     from typing import AsyncIterator, Self
 
@@ -253,6 +260,23 @@ class NetlinkClient:
             found_route = route
         assert found_route is not None
         return found_route
+
+    async def add_route(
+        self,
+        destination: IPv4Network | IPv6Network | None = None,
+        gateway: IPv4Address | IPv6Address | None = None,
+        oif: int | None = None,
+        family: int | None = None,
+    ) -> None:
+        route_type_ = route_type()
+        request = route_type_.rtm_add(
+            destination=destination,
+            gateway=gateway,
+            oif=oif,
+            family=family,
+        )
+        async for _ in self._send_request(request):
+            pass
 
     async def get_rules(self) -> AsyncIterator[Rule]:
         rule_type_ = rule_type()

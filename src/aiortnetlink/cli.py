@@ -1,4 +1,5 @@
 import argparse
+import socket
 import sys
 from typing import Literal
 
@@ -95,6 +96,17 @@ def parse_args() -> argparse.Namespace:
         help="don't map table id to table name",
         action="store_true",
     )
+
+    # route add
+    route_add_parser = route_subparsers.add_parser("add", aliases=["a"])
+    route_add_parser.add_argument("DESTINATION")
+    route_add_parser.add_argument("-4", "--ipv4", action="store_true")
+    route_add_parser.add_argument("-6", "--ipv6", action="store_true")
+    route_add_destination_group = route_add_parser.add_mutually_exclusive_group(
+        required=True
+    )
+    route_add_destination_group.add_argument("--via", "--gateway")
+    route_add_destination_group.add_argument("--dev", "--oif")
 
     # rule
     rule_parser = subparsers.add_parser("rule", aliases=["ru"])
@@ -329,7 +341,7 @@ async def run(args: argparse.Namespace) -> None:
             proto_id_to_name = _rt_protos(args)
             scope_id_to_name = _rt_scopes(args)
 
-            get_address = ipaddress.ip_address(args.ADDRESS)
+            get_address = ipaddress.ip_interface(args.ADDRESS)
             async with NetlinkClient(**client_args) as nl:
                 link_index_to_name = await _link_index_to_name(args, nl)
 
@@ -341,6 +353,38 @@ async def run(args: argparse.Namespace) -> None:
                         scope_id_to_name=scope_id_to_name.get,
                         link_index_to_name=link_index_to_name.get,
                     )
+                )
+
+        case argparse.Namespace(object="route" | "ro" | "r", command="add" | "a"):
+            import ipaddress
+
+            async with NetlinkClient(**client_args) as nl:
+                if args.dev:
+                    oif = (await nl.get_link(ifi_name=args.dev)).index
+                    if oif is None:
+                        raise NetlinkError(f"No such device {args.dev}")
+                else:
+                    oif = None
+
+                if args.ipv4:
+                    family = socket.AF_INET
+                elif args.ipv6:
+                    family = socket.AF_INET6
+                else:
+                    family = None
+
+                destination = args.DESTINATION
+                if "/" in destination:
+                    destination = ipaddress.ip_network(destination)
+                else:
+                    address = ipaddress.ip_address(destination)
+                    destination = ipaddress.ip_network((address, address.max_prefixlen))
+
+                await nl.add_route(
+                    destination=destination,
+                    gateway=ipaddress.ip_address(args.via) if args.via else None,
+                    oif=oif,
+                    family=family,
                 )
 
         case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
