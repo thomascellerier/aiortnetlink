@@ -280,6 +280,25 @@ class NetlinkClient:
         async for _ in self._send_request(request):
             pass
 
+    async def del_route(
+        self,
+        destination: IPv4Network | IPv6Network | None = None,
+        gateway: IPv4Address | IPv6Address | None = None,
+        oif: int | None = None,
+        family: int | None = None,
+        table: int | None = None,
+    ) -> None:
+        route_type_ = route_type()
+        request = route_type_.rtm_del(
+            destination=destination,
+            gateway=gateway,
+            oif=oif,
+            family=family,
+            table=table,
+        )
+        async for _ in self._send_request(request):
+            pass
+
     async def get_rules(self) -> AsyncIterator[Rule]:
         rule_type_ = rule_type()
         request = rule_type_.rtm_get()

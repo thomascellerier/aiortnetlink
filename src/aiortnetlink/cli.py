@@ -109,6 +109,16 @@ def parse_args() -> argparse.Namespace:
     route_add_destination_group.add_argument("--via", "--gateway")
     route_add_destination_group.add_argument("--dev", "--oif")
 
+    # route del
+    route_del_parser = route_subparsers.add_parser("del", aliases=["d"])
+    route_del_parser.add_argument("DESTINATION")
+    route_del_parser.add_argument("-4", "--ipv4", action="store_true")
+    route_del_parser.add_argument("-6", "--ipv6", action="store_true")
+    route_del_parser.add_argument("-t", "--table")
+    route_del_destination_group = route_del_parser.add_mutually_exclusive_group()
+    route_del_destination_group.add_argument("--via", "--gateway")
+    route_del_destination_group.add_argument("--dev", "--oif")
+
     # rule
     rule_parser = subparsers.add_parser("rule", aliases=["ru"])
     rule_subparsers = rule_parser.add_subparsers(
@@ -356,7 +366,9 @@ async def run(args: argparse.Namespace) -> None:
                     )
                 )
 
-        case argparse.Namespace(object="route" | "ro" | "r", command="add" | "a"):
+        case argparse.Namespace(
+            object="route" | "ro" | "r", command="add" | "a" | "del" | "d" as command
+        ):
             import ipaddress
 
             async with NetlinkClient(**client_args) as nl:
@@ -402,13 +414,27 @@ async def run(args: argparse.Namespace) -> None:
                             ) from None
                 else:
                     table_id = None
-                await nl.add_route(
-                    destination=destination,
-                    gateway=ipaddress.ip_address(args.via) if args.via else None,
-                    oif=oif,
-                    family=family,
-                    table=table_id,
-                )
+                match command:
+                    case "add" | "a":
+                        await nl.add_route(
+                            destination=destination,
+                            gateway=ipaddress.ip_address(args.via)
+                            if args.via
+                            else None,
+                            oif=oif,
+                            family=family,
+                            table=table_id,
+                        )
+                    case "del" | "d":
+                        await nl.del_route(
+                            destination=destination,
+                            gateway=ipaddress.ip_address(args.via)
+                            if args.via
+                            else None,
+                            oif=oif,
+                            family=family,
+                            table=table_id,
+                        )
 
         case argparse.Namespace(object="rule" | "ru", command="show" | "s"):
             if not args.numeric:

@@ -89,9 +89,11 @@ def add_route_request(
     if destination is not None:
         if family is None:
             family = socket.AF_INET if destination.version == 4 else socket.AF_INET6
-        dst_len: int = destination.max_prefixlen
+        dst_len: int = destination.prefixlen
     else:
         dst_len = 0
+        if family is None and gateway is not None:
+            family = socket.AF_INET if gateway.version == 4 else socket.AF_INET6
 
     if family is None:
         raise ValueError("Route must specify an address family")
@@ -127,6 +129,59 @@ def add_route_request(
 
     data = b"".join(parts)
     return NetlinkRequest(RTMType.NEWROUTE, flags, data, RTMType.NEWROUTE)
+
+
+def del_route_request(
+    destination: IPv4Network | IPv6Network | None = None,
+    gateway: IPv4Address | IPv6Address | None = None,
+    oif: int | None = None,
+    family: int | None = None,
+    table: int | None = None,
+) -> NetlinkRequest:
+    flags: int = NLFlag.REQUEST | NLFlag.CREATE | NLFlag.ACK
+    if destination is not None:
+        if family is None:
+            family = socket.AF_INET if destination.version == 4 else socket.AF_INET6
+        dst_len: int = destination.prefixlen
+    else:
+        dst_len = 0
+        if family is None and gateway is not None:
+            family = socket.AF_INET if gateway.version == 4 else socket.AF_INET6
+
+    if family is None:
+        raise ValueError("Route must specify an address family")
+
+    if table is None:
+        table = RTTable.MAIN
+
+    if table < 256:
+        rtm_table = table
+    else:
+        rtm_table = RTTable.MAIN
+
+    parts = [
+        RTMsg(
+            family=family,
+            rtm_type=RTNType.UNICAST,
+            protocol=RTProt.BOOT,
+            scope=RTScope.LINK,
+            dst_len=dst_len,
+            table=rtm_table,
+        ).encode(),
+        NLAttr.from_int(RTAType.TABLE, table),
+    ]
+
+    if destination is not None:
+        parts.append(NLAttr.from_ipaddress(RTAType.DST, destination.network_address))
+
+    if oif is not None:
+        parts.append(NLAttr.from_int(RTAType.OIF, oif))
+
+    if gateway is not None:
+        parts.append(NLAttr.from_ipaddress(RTAType.GATEWAY, gateway))
+
+    data = b"".join(parts)
+    return NetlinkRequest(RTMType.DELROUTE, flags, data, RTMType.NEWROUTE)
 
 
 @dataclass(slots=True)
@@ -249,6 +304,22 @@ class Route:
         table: int | None = None,
     ) -> NetlinkRequest:
         return add_route_request(
+            destination=destination,
+            gateway=gateway,
+            oif=oif,
+            family=family,
+            table=table,
+        )
+
+    @staticmethod
+    def rtm_del(
+        destination: IPv4Network | IPv6Network | None = None,
+        gateway: IPv4Address | IPv6Address | None = None,
+        oif: int | None = None,
+        family: int | None = None,
+        table: int | None = None,
+    ) -> NetlinkRequest:
+        return del_route_request(
             destination=destination,
             gateway=gateway,
             oif=oif,
