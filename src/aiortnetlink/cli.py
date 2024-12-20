@@ -417,7 +417,7 @@ async def run(args: argparse.Namespace) -> None:
                 match command:
                     case "add" | "a":
                         await nl.add_route(
-                            destination=destination,
+                            dst=destination,
                             gateway=ipaddress.ip_address(args.via)
                             if args.via
                             else None,
@@ -427,7 +427,7 @@ async def run(args: argparse.Namespace) -> None:
                         )
                     case "del" | "d":
                         await nl.del_route(
-                            destination=destination,
+                            dst=destination,
                             gateway=ipaddress.ip_address(args.via)
                             if args.via
                             else None,

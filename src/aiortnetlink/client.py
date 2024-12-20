@@ -247,14 +247,14 @@ class NetlinkClient:
             pass
 
     async def get_routes(
-        self, address: IPv4Address | IPv6Address | None = None
+        self, address: IPv4Interface | IPv6Interface | None = None
     ) -> AsyncIterator[Route]:
         route_type_ = route_type()
-        request = route_type_.rtm_get(address=address)
+        request = route_type_.rtm_get(dst=address)
         async for msg in self._send_request(request):
             yield route_type_.from_nlmsg(msg)
 
-    async def get_route(self, address: IPv4Address | IPv6Address) -> Route:
+    async def get_route(self, address: IPv4Interface | IPv6Interface) -> Route:
         found_route: Route | None = None
         async for route in self.get_routes(address=address):
             found_route = route
@@ -263,7 +263,7 @@ class NetlinkClient:
 
     async def add_route(
         self,
-        destination: IPv4Network | IPv6Network | None = None,
+        dst: IPv4Network | IPv6Network | None = None,
         gateway: IPv4Address | IPv6Address | None = None,
         oif: int | None = None,
         family: int | None = None,
@@ -271,7 +271,7 @@ class NetlinkClient:
     ) -> None:
         route_type_ = route_type()
         request = route_type_.rtm_add(
-            destination=destination,
+            dst=dst,
             gateway=gateway,
             oif=oif,
             family=family,
@@ -282,7 +282,7 @@ class NetlinkClient:
 
     async def del_route(
         self,
-        destination: IPv4Network | IPv6Network | None = None,
+        dst: IPv4Network | IPv6Network | None = None,
         gateway: IPv4Address | IPv6Address | None = None,
         oif: int | None = None,
         family: int | None = None,
@@ -290,7 +290,7 @@ class NetlinkClient:
     ) -> None:
         route_type_ = route_type()
         request = route_type_.rtm_del(
-            destination=destination,
+            dst=dst,
             gateway=gateway,
             oif=oif,
             family=family,
