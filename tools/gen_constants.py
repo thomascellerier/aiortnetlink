@@ -660,7 +660,6 @@ def print_result(
             \"\"\"
 
             from enum import IntEnum
-            from typing import Final
     
             __all__ = ["{name}"]
     
@@ -682,7 +681,7 @@ def print_result(
             else:
                 value_str = str(constant_value)
             print(
-                f"    {constant_name.removeprefix(type_spec.prefix)}: Final = {value_str}",
+                f"    {constant_name.removeprefix(type_spec.prefix)} = {value_str}",
                 file=f,
             )
         print(
