@@ -4,11 +4,12 @@ import struct
 import typing
 from typing import Literal
 
-__all__ = ["create_tuntap", "delete_tuntap"]
-
 from aiortnetlink.constants.miscconstants import MiscConstants
 from aiortnetlink.constants.tuniffflag import TunIffFlag
 from aiortnetlink.constants.tunioctl import TunIoctl
+
+__all__ = ["create_tuntap", "delete_tuntap"]
+
 
 _IFReq = struct.Struct(
     f"{MiscConstants.IFNAMSIZ}s"  # Interface name

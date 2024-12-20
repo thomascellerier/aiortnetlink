@@ -8,6 +8,8 @@ from asyncio import DatagramTransport
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Final, Iterator, NamedTuple
 
+from aiortnetlink.constants.nlfamily import NLFamily
+
 __all__ = [
     "NLFamily",
     "NetlinkOSError",
@@ -27,7 +29,6 @@ __all__ = [
     "NetlinkRequest",
 ]
 
-from aiortnetlink.constants.nlfamily import NLFamily
 
 # Netlink socket options
 SOL_NETLINK: Final = 270
