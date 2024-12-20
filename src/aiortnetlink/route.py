@@ -208,11 +208,14 @@ class Route:
         parts = [
             RTMsg(
                 family=self.family,
-                rtm_type=self.rtm_type,
+                dst_len=self.dst_len,
+                src_len=self.src_len,
+                tos=self.tos,
+                table=rtm_table,
                 protocol=self.protocol,
                 scope=self.scope,
-                dst_len=self.dst_len,
-                table=rtm_table,
+                rtm_type=self.rtm_type,
+                flags=self.flags,
             ).encode(),
         ]
 
@@ -225,8 +228,29 @@ class Route:
         if self.oif is not None:
             parts.append(NLAttr.from_int(RTAType.OIF, self.oif))
 
+        if self.iif is not None:
+            parts.append(NLAttr.from_int(RTAType.IIF, self.iif))
+
         if self.gateway is not None:
             parts.append(NLAttr.from_ipaddress(RTAType.GATEWAY, self.gateway))
+
+        if self.pref is not None:
+            parts.append(NLAttr.from_int(RTAType.PREF, self.pref))
+
+        if self.prefsrc is not None:
+            parts.append(NLAttr.from_ipaddress(RTAType.PREFSRC, self.prefsrc))
+
+        if self.src is not None:
+            parts.append(NLAttr.from_ipaddress(RTAType.SRC, self.src))
+
+        if self.mark is not None:
+            parts.append(NLAttr.from_int(RTAType.MARK, self.mark))
+
+        if self.uid is not None:
+            parts.append(NLAttr.from_int(RTAType.UID, self.uid))
+
+        if self.priority is not None:
+            parts.append(NLAttr.from_int(RTAType.PRIORITY, self.priority))
 
         return b"".join(parts)
 
