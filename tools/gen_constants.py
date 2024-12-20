@@ -583,7 +583,6 @@ def generate_program(name: str = "gen_constants") -> Path:
         includes |= {include for ts in constants for include in ts.includes}
         for include in sorted(includes):
             f.write(f"#include {include}\n")
-        # TODO: Should each typespec define it's includes?
         f.write("""\
 
 int main(int argc, char *argv[]) {
