@@ -220,22 +220,22 @@ class Route:
         ]
 
         if self.table >= 256:
-            parts.append(NLAttr.from_int(RTAType.TABLE, self.table))
+            parts.append(NLAttr.from_int_u32(RTAType.TABLE, self.table))
 
         if self.dst is not None:
             parts.append(NLAttr.from_ipaddress(RTAType.DST, self.dst))
 
         if self.oif is not None:
-            parts.append(NLAttr.from_int(RTAType.OIF, self.oif))
+            parts.append(NLAttr.from_int_u32(RTAType.OIF, self.oif))
 
         if self.iif is not None:
-            parts.append(NLAttr.from_int(RTAType.IIF, self.iif))
+            parts.append(NLAttr.from_int_u32(RTAType.IIF, self.iif))
 
         if self.gateway is not None:
             parts.append(NLAttr.from_ipaddress(RTAType.GATEWAY, self.gateway))
 
         if self.pref is not None:
-            parts.append(NLAttr.from_int(RTAType.PREF, self.pref))
+            parts.append(NLAttr.from_int_u8(RTAType.PREF, self.pref))
 
         if self.prefsrc is not None:
             parts.append(NLAttr.from_ipaddress(RTAType.PREFSRC, self.prefsrc))
@@ -244,13 +244,13 @@ class Route:
             parts.append(NLAttr.from_ipaddress(RTAType.SRC, self.src))
 
         if self.mark is not None:
-            parts.append(NLAttr.from_int(RTAType.MARK, self.mark))
+            parts.append(NLAttr.from_int_u32(RTAType.MARK, self.mark))
 
         if self.uid is not None:
-            parts.append(NLAttr.from_int(RTAType.UID, self.uid))
+            parts.append(NLAttr.from_int_u32(RTAType.UID, self.uid))
 
         if self.priority is not None:
-            parts.append(NLAttr.from_int(RTAType.PRIORITY, self.priority))
+            parts.append(NLAttr.from_int_u32(RTAType.PRIORITY, self.priority))
 
         return b"".join(parts)
 

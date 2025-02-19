@@ -24,7 +24,6 @@ __all__ = [
     "NLMsg",
     "NLAttr",
     "encode_nlmsg",
-    "encode_nlattr_int",
     "encode_nlattr_str",
     "NetlinkRequest",
 ]
@@ -88,8 +87,12 @@ class NLAttr(NamedTuple):
         return encode_nlattr_str(attr_type, value)
 
     @staticmethod
-    def from_int(attr_type: int, value: int) -> bytes:
-        return encode_nlattr_int(attr_type, value)
+    def from_int_u32(attr_type: int, value: int) -> bytes:
+        return encode_nlattr_int_u32(attr_type, value)
+
+    @staticmethod
+    def from_int_u8(attr_type: int, value: int) -> bytes:
+        return encode_nlattr_int_u8(attr_type, value)
 
     @staticmethod
     def from_ipaddress(
@@ -153,8 +156,12 @@ def decode_nlattr_int(data: memoryview) -> int:
     return int.from_bytes(data, sys.byteorder)
 
 
-def encode_nlattr_int(nla_type: int, value: int) -> bytes:
+def encode_nlattr_int_u32(nla_type: int, value: int) -> bytes:
     return _nlattr(nla_type, value.to_bytes(4, sys.byteorder))
+
+
+def encode_nlattr_int_u8(nla_type: int, value: int) -> bytes:
+    return _nlattr(nla_type, value.to_bytes(1, sys.byteorder))
 
 
 def encode_nlattr_ipaddress(
